@@ -16,7 +16,7 @@ To grasp the concept of the framework we're going to build a simple demo.
 - "[Create React App](https://github.com/facebookincubator/create-react-app)" installed
 - A running OrientDB server
   - "Tolkien-Arda" database installed (freely available as a [public database](https://github.com/orientechnologies/public-databases))
-- A running [GoldmineJS server](placeholder)
+- A running [GoldmineJS server](https://github.com/BeSports/Goldmine-Server)
 
 ### Create the application skeleton
 
@@ -53,7 +53,7 @@ GoldmineJS isn't available yet on npm. Add it manually to your dependencies.
 ```json
 {
   "dependencies": {
-    "goldmine-js-client": "git+https://gitlab.kayzr.com/ruben/GoldmineJS.git#master"
+    "goldmine-js-client": "git+https://github.com/BeSports/Goldmine-Client#master"
   }
 }
 ```
