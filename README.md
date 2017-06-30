@@ -89,7 +89,7 @@ import {MainContainer} from 'goldmine-js-client';
 
 ```react
 <div>
-  <MainContainer host="http://127.0.0.1:3020"/>
+  <MainContainer host="http://127.0.0.1:3020" driver="orientdb"/>
   
   <h1>GoldmineJS rocks!</h1>
 </div>
@@ -183,7 +183,7 @@ import CreatureContainer from './containers/CreatureContainer'
 
 ```react
 <div>
-  <MainContainer host="http://127.0.0.1:3020"/>
+  <MainContainer host="http://127.0.0.1:3020" driver="orientdb"/>
 
   <h1>GoldmineJS rocks!</h1>
   <CreatureContainer/>
