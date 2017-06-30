@@ -95,7 +95,7 @@ import {MainContainer} from 'goldmine-js-client';
 </div>
 ```
 
-As you can see there is a prop *host* in the main container. The *host* prop refers to the GoldmineJS server, it is mandatory!
+As you can see there is a prop *host* in the main container and a *driver* property. The *host* prop refers to the GoldmineJS server, it is mandatory! The driver property defines which database the web socket is using.
 
 #### Create a sub container
 
