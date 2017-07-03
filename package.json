@@ -1,18 +1,25 @@
 {
-  "name": "goldmine-js-client",
-  "version": "0.1.0",
+  "name": "goldmine-client",
+  "version": "0.1.2",
   "description": "A framework for building reactive web apps.",
-  "main": "lib/index.js",
+  "main": "build/index.js",
   "scripts": {
-    "compile": "babel -d lib/ src/",
-    "prepublish": "npm run compile",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "babel src -d build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/BeSports/Goldmine-Client.git"
+  },
+  "bugs": {
+    "url": "https://github.com/BeSports/Goldmine-Client/issues"
   },
   "keywords": [
     "goldmine",
     "reactive",
-    "realtime"
+    "realtime",
+    "client"
   ],
+  "license": "MIT",
   "contributors": [
     {
       "name": "Jasper Dansercoer",
@@ -23,6 +30,10 @@
       "name": "Ruben Vermeulen",
       "email": "hello@rubenvermeulen.be",
       "url": "https://rubenvermeulen.be/"
+    },
+    {
+      "name": "Michiel Cuvelier",
+      "email": "michiel@mitchken.com"
     }
   ],
   "dependencies": {
@@ -30,6 +41,7 @@
     "mobx": "^3.1.16",
     "mobx-react": "^4.2.1",
     "react": "^15.6.1",
+    "react-dom": "^15.6.1",
     "socket.io-client": "^2.0.3"
   },
   "devDependencies": {
