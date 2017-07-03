@@ -61,4 +61,4 @@ typings/
 /.idea/
 
 # Babel generated
-/lib/
+/build/

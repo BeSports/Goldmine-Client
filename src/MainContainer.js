@@ -43,6 +43,8 @@ export default class MainContainer extends React.Component {
     _.forEach(newSubs, obj => {
       if (!this.subs.hasOwnProperty(obj.publicationNameWithParams)) {
         let listener = payload => {
+          console.log(payload);
+
           dataStore.change(obj.publicationNameWithParams, payload, obj.options);
         };
 
