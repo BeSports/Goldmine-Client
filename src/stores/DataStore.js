@@ -148,8 +148,8 @@ class DataStore {
    */
   @action
   insertDocument(publicationNameWithParams, collectionName, data, options) {
+    this.createCollectionIfNotExists(collectionName);
     data['__publicationNameWithParams'] = publicationNameWithParams;
-
     if (!this.documentExists(collectionName, data)) {
       // If limit is defined in options, first delete an item.
       if (options !== undefined && options.limit !== undefined && options.sortBy !== undefined) {
