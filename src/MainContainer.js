@@ -19,11 +19,15 @@ export default class MainContainer extends React.Component {
 
     this.subs = {};
     this.socket = io(props.host);
-
     dataStore.setPrimaryKey(Config.drivers[props.driver]);
   }
 
   componentWillMount() {
+    if (this.props.auth) {
+      this.socket.on('connect', () => {
+        this.socket.emit('authenticate', this.props.auth);
+      });
+    }
     autorun(() => {
       this.handleSubscriptions(pubSubStore.subs);
     });
