@@ -19,7 +19,12 @@ export default class MainContainer extends React.Component {
 
     this.subs = {};
     this.socket = io(props.host);
-    dataStore.setPrimaryKey(Config.drivers[props.driver]);
+    if(props.driver) {
+      dataStore.setPrimaryKey(Config.drivers[props.driver]);
+    } else {
+      console.log('GOLDMINE NoDriver provided: Please provide a driver to the maincontainer.');
+      throw new Error('Please provide a driver to the maincontainer', 'GOLDMINE No-driver');
+    }
   }
 
   componentWillMount() {
