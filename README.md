@@ -1,5 +1,8 @@
 # GoldmineJS - Client
 
+[npm version](https://www.npmjs.org/package/goldmine-client)
+
+
 ## Introduction
 
 GoldmineJS is a framework for building reactive web apps in Javascript.
