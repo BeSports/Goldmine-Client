@@ -40,7 +40,7 @@ export default (requests, Component) => {
     }
 
     componentWillReceiveProps(nextProps) {
-      if (JSON.stringify(nextProps.match) !== JSON.stringify(this.props.match)) {
+      if (JSON.stringify(nextProps) !== JSON.stringify(this.props)) {
         // Run changes in transaction.
         // When transaction is complete te necessary updates will take place.
         runInAction(() => {
@@ -51,10 +51,6 @@ export default (requests, Component) => {
           this.cancelSubscriptions();
           this.getData(nextProps);
           this.garbageCollector(copySubs);
-        });
-      } else if (JSON.stringify(nextProps.options) !== JSON.stringify(this.props.options)) {
-        runInAction(() => {
-          this.getData(nextProps);
         });
       }
     }
