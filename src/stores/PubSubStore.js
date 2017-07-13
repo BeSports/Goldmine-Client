@@ -9,14 +9,13 @@ class PubSubStore {
    *
    * @param publicationNameWithParams
    * @param isReactive
-   * @param options
    */
   @action
-  subscribe(publicationNameWithParams, isReactive, options) {
+  subscribe(publicationNameWithParams, isReactive) {
     const sub = _.find(this.subs, { publicationNameWithParams: publicationNameWithParams });
 
     if (sub === undefined) {
-      this.subs.push({ publicationNameWithParams, isReactive, options });
+      this.subs.push({ publicationNameWithParams, isReactive });
     }
   }
 
