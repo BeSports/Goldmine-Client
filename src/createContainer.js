@@ -27,13 +27,11 @@ export default (requests, Component) => {
 
     componentWillMount() {
       this.setState({ loaders: this.loaders });
-
       this.handler = autorun(() => {
         if (!this.garbageCollectorRunning) {
           if (_.size(this.subs) !== 0 && this.loaders > 0) {
             this.loaders--;
           }
-
           this.getData(this.dataProps);
         }
       });
@@ -49,7 +47,6 @@ export default (requests, Component) => {
           this.dataProps = nextProps;
 
           this.cancelSubscriptions();
-          this.getData(nextProps);
           this.garbageCollector(copySubs);
         });
       }
@@ -78,8 +75,7 @@ export default (requests, Component) => {
       this.setState(temp);
     }
 
-    // TODO: Gets called twice when changing params
-    subscribe(publicationName, params, isReactive, options) {
+    subscribe(publicationName, params, isReactive) {
       const publicationNameWithParams = publicationName + '?' + this.buildParams(params);
 
       if (this.subs.hasOwnProperty(publicationNameWithParams)) {
@@ -87,7 +83,7 @@ export default (requests, Component) => {
       }
 
       // Notify store
-      pubSubStore.subscribe(publicationNameWithParams, isReactive, options);
+      pubSubStore.subscribe(publicationNameWithParams, isReactive);
 
       // Sub container tracks his subs
       this.subs[publicationNameWithParams] = isReactive;
