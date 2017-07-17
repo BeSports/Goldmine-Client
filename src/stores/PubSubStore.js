@@ -15,7 +15,7 @@ class PubSubStore {
     const sub = _.find(this.subs, { publicationNameWithParams: publicationNameWithParams });
 
     if (sub === undefined) {
-      this.subs.push({ publicationNameWithParams, isReactive });
+      this.subs.push({ publicationNameWithParams, isReactive, loaders: 1 });
     }
   }
 

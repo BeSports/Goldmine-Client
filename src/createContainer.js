@@ -1,6 +1,7 @@
 import React from 'react';
 import { autorun, runInAction } from 'mobx';
 import _ from 'lodash';
+import {observable} from "mobx";
 
 import pubSubStore from './stores/PubSubStore';
 import dataStore from './stores/DataStore';
@@ -26,12 +27,14 @@ export default (requests, Component) => {
     }
 
     componentWillMount() {
-      this.setState({ loaders: this.loaders });
+      this.setState({
+          loaders: this.loaders
+      });
       this.handler = autorun(() => {
+        this.setState({
+          loaders: this.getLoadersFromSubscriptions()
+        });
         if (!this.garbageCollectorRunning) {
-          if (_.size(this.subs) !== 0 && this.loaders > 0) {
-            this.loaders--;
-          }
           this.getData(this.dataProps);
         }
       });
@@ -70,9 +73,18 @@ export default (requests, Component) => {
      */
     getData(props) {
       let temp = requests(this, props);
-      temp['loaders'] = this.loaders;
+      temp['loaders'] = this.getLoadersFromSubscriptions();
 
       this.setState(temp);
+    }
+
+    getLoadersFromSubscriptions() {
+      const subsForContainer = _.filter(pubSubStore.subs, (s) => {
+        return _.find(_.keys(this.subs), (subName) => {
+          return subName === s.publicationNameWithParams;
+        });
+      });
+      return _.sumBy(subsForContainer, 'loaders');
     }
 
     subscribe(publicationName, params, isReactive) {
