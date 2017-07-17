@@ -53,8 +53,15 @@ export default class MainContainer extends React.Component {
       if (!this.subs.hasOwnProperty(obj.publicationNameWithParams)) {
         let listener = payload => {
           console.log(payload);
-
           dataStore.change(obj.publicationNameWithParams, payload, obj.options);
+          pubSubStore.subs = _.map(pubSubStore.subs, (subscription) => {
+            if(subscription.publicationNameWithParams === obj.publicationNameWithParams) {
+              const clone = _.cloneDeep(subscription);
+              clone.loaders = 0;
+              return clone;
+            }
+            return subscription;
+          });
         };
 
         this.subs[obj.publicationNameWithParams] = listener;
