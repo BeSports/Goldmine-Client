@@ -98,7 +98,6 @@ class DataStore {
       } else {
         dbObject = _.find(this.collections[collectionName], this.paramsFind(data));
       }
-
       // Check if dbObject is still undefined.
       if (dbObject === undefined) {
         return;
@@ -132,7 +131,6 @@ class DataStore {
       }
     });
 
-    // TODO
     if (!(dbObject instanceof Array)) {
       // Make new properties observable.
       extendObservable(dbObject, temp);
@@ -196,11 +194,7 @@ class DataStore {
 
     // TODO: volledig document verwijderen wanneer enkel extend wordt verwijderd?
     if (response.target === undefined) {
-      tempObj = _.find(this.collections[response.collectionName], paramsFind(response.data));
-    } else {
-      tempObj = _.find(this.collections[response.collectionName], obj => {
-        return obj[response.target][this.primaryKey] === response.data[this.primaryKey];
-      });
+      tempObj = _.find(this.collections[response.collectionName], ['_id', response.data._id]);
     }
 
     if (tempObj === undefined) {
