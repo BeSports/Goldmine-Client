@@ -13,9 +13,13 @@ class PubSubStore {
   @action
   subscribe(publicationNameWithParams, isReactive) {
     const sub = _.find(this.subs, { publicationNameWithParams: publicationNameWithParams });
-
     if (sub === undefined) {
-      this.subs.push({ publicationNameWithParams, isReactive, loaders: 1 });
+      this.subs.push({ publicationNameWithParams, isReactive, loaders: 1, times: 1 });
+    } else {
+      const newTimes = sub.times + 1;
+      this.subs[
+        _.findIndex(this.subs, { publicationNameWithParams: publicationNameWithParams })
+      ] = _.merge({}, sub, { times: newTimes });
     }
   }
 
@@ -26,7 +30,17 @@ class PubSubStore {
    */
   @action
   cancelSubscription(publicationNameWithParams) {
-    _.remove(this.subs, { publicationNameWithParams: publicationNameWithParams });
+    const sub = _.find(this.subs, { publicationNameWithParams: publicationNameWithParams });
+    if (sub) {
+      if (sub.times === 1) {
+        _.remove(this.subs, { publicationNameWithParams: publicationNameWithParams });
+      } else if (sub.times >= 2) {
+        const newTimes = sub.times - 1;
+        this.subs[
+          _.findIndex(this.subs, { publicationNameWithParams: publicationNameWithParams })
+        ] = _.merge({}, sub, { times: newTimes });
+      }
+    }
   }
 }
 
