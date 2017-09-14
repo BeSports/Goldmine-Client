@@ -87,6 +87,7 @@ class DataStore {
   updateDocument(collectionName, response, data, dbObject) {
     // Check if dbObject is given along with the method call.
     if (dbObject === undefined) {
+      //TODO: check if obsolete
       if (response.target !== undefined) {
         dbObject = _.filter(this.collections[collectionName], obj => {
           if (obj[response.target] instanceof Array) {
@@ -147,12 +148,12 @@ class DataStore {
   @action
   insertDocument(publicationNameWithParams, collectionName, data, options) {
     this.createCollectionIfNotExists(collectionName);
-    data['__publicationNameWithParams'] = publicationNameWithParams;
+    data['__publicationNameWithParams'] = [publicationNameWithParams];
     if (!this.documentExists(collectionName, data)) {
       // If limit is defined in options, first delete an item.
       if (options !== undefined && options.limit !== undefined && options.sortBy !== undefined) {
-        const collection = _.filter(this.collections[collectionName], {
-          __publicationNameWithParams: publicationNameWithParams,
+        const collection = _.filter(this.collections[collectionName], ob => {
+          return _.contains(ob.__publicationNameWithParams, publicationNameWithParams);
         });
 
         let tempSorted = collection.sort((a, b) => {
@@ -192,7 +193,6 @@ class DataStore {
   deleteDocument(response) {
     let tempObj = undefined;
 
-    // TODO: volledig document verwijderen wanneer enkel extend wordt verwijderd?
     if (response.target === undefined) {
       tempObj = _.find(this.collections[response.collectionName], ['_id', response.data._id]);
     }
@@ -212,8 +212,24 @@ class DataStore {
   @action
   garbageCollector(publicationNameWithParams) {
     // TODO: array van maken voor meerdere subscriptions te koppelen en bij de laatste pas verwijderen.
-    _.forEach(this.collections, collection => {
-      _.remove(collection, { __publicationNameWithParams: publicationNameWithParams });
+    _.map(this.collections, (collection, i) => {
+      _.remove(collection, o => {
+        return o['__publicationNameWithParams'] === observable([publicationNameWithParams]);
+      });
+      let toReturn =  _.filter(_.map(collection, o => {
+        if(_.includes(o['__publicationNameWithParams'], publicationNameWithParams)) {
+          let oCopy = o;
+          oCopy['__publicationNameWithParams'] = _.remove(o['__publicationNameWithParams'], publicationNameWithParams);
+          if(_.size(oCopy['__publicationNameWithParams']) === 0) {
+            return null;
+          }
+          return oCopy;
+        };
+        return o;
+      }), o => {
+        return o !== null;
+      });
+      this.collections[i] = toReturn;
     });
   }
 
@@ -226,8 +242,11 @@ class DataStore {
    */
   paramsFind(data) {
     const paramsFind = {};
-    paramsFind[this.primaryKey] = data[this.primaryKey];
-
+    if (data[this.primaryKey]) {
+      paramsFind[this.primaryKey] = data[this.primaryKey];
+    } else {
+      paramsFind['@rid'] = data['@rid'];
+    }
     return paramsFind;
   }
 }
