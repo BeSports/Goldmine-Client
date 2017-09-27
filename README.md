@@ -1,7 +1,6 @@
 # GoldmineJS - Client
 
-[npm version](https://www.npmjs.org/package/goldmine-client)
-
+[![NPM](https://nodei.co/npm/goldmine-client.png)](https://nodei.co/npm/goldmine-client/)
 
 ## Introduction
 
