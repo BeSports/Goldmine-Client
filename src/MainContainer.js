@@ -19,7 +19,7 @@ export default class MainContainer extends React.Component {
 
     this.subs = {};
     this.socket = io(props.host);
-    if(props.driver) {
+    if (props.driver) {
       dataStore.setPrimaryKey(Config.drivers[props.driver]);
     } else {
       console.log('GOLDMINE NoDriver provided: Please provide a driver to the maincontainer.');
@@ -31,6 +31,11 @@ export default class MainContainer extends React.Component {
     if (this.props.auth) {
       this.socket.on('connect', () => {
         this.socket.emit('authenticate', this.props.auth);
+      });
+      this.socket.on('disconnect', () => {
+        if (typeof this.props.onDisconnect === 'function') {
+          this.props.onDisconnect();
+        }
       });
     }
     autorun(() => {
@@ -54,8 +59,8 @@ export default class MainContainer extends React.Component {
         let listener = payload => {
           console.log(payload);
           dataStore.change(obj.publicationNameWithParams, payload, obj.options);
-          pubSubStore.subs = _.map(pubSubStore.subs, (subscription) => {
-            if(subscription.publicationNameWithParams === obj.publicationNameWithParams) {
+          pubSubStore.subs = _.map(pubSubStore.subs, subscription => {
+            if (subscription.publicationNameWithParams === obj.publicationNameWithParams) {
               const clone = _.cloneDeep(subscription);
               clone.loaders = 0;
               return clone;
