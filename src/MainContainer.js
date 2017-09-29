@@ -67,6 +67,11 @@ export default class MainContainer extends React.Component {
             }
             return subscription;
           });
+          _.map(pubSubStore.subContainers, sc => {
+            if (sc.subs && _.includes(_.keys(sc.subs), obj.publicationNameWithParams)) {
+              sc.doAutoRun();
+            }
+          });
         };
 
         this.subs[obj.publicationNameWithParams] = listener;

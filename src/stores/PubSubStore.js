@@ -3,6 +3,7 @@ import _ from 'lodash';
 
 class PubSubStore {
   @observable subs = [];
+  @observable subContainers = [];
 
   /**
    * Subscribes to a publication.
@@ -41,6 +42,16 @@ class PubSubStore {
         ] = _.merge({}, sub, { times: newTimes });
       }
     }
+  }
+
+  @action
+  registerSubContainer(subContainer) {
+    this.subContainers.push(subContainer);
+  }
+
+  @action
+  cancelSubContainer(subContainer) {
+    _.remove(this.subContainers, subContainer);
   }
 }
 

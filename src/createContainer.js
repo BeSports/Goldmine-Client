@@ -1,7 +1,6 @@
 import React from 'react';
-import { autorun, runInAction } from 'mobx';
+import { autorun, runInAction, computed, observable, action } from 'mobx';
 import _ from 'lodash';
-import {observable} from "mobx";
 
 import pubSubStore from './stores/PubSubStore';
 import dataStore from './stores/DataStore';
@@ -16,7 +15,7 @@ import dataStore from './stores/DataStore';
  * @returns {*}
  */
 export default (requests, Component) => {
-  return class SubContainer extends React.Component {
+  return class SubContainer extends React.PureComponent {
     constructor(props) {
       super(props);
 
@@ -30,20 +29,21 @@ export default (requests, Component) => {
       this.setState({
           loaders: this.loaders
       });
-      this.handler = autorun(() => {
-        this.setState({
-          loaders: this.getLoadersFromSubscriptions()
-        });
+      pubSubStore.registerSubContainer(this);
+      this.doAutoRun = () => {
         if (!this.garbageCollectorRunning) {
-          this.getData(this.dataProps);
+          let temp = requests(this, this.dataProps);
+          temp['loaders'] = this.getLoadersFromSubscriptions;
+          this.setState(temp);
         }
-      });
+      };
+      this.doAutoRun();
     }
 
     componentWillReceiveProps(nextProps) {
       if (JSON.stringify(nextProps) !== JSON.stringify(this.props)) {
         // Run changes in transaction.
-        // When transaction is complete te necessary updates will take place.
+        // When transaction is complete the necessary updates will take place.
         runInAction(() => {
           let copySubs = Object.assign({}, this.subs);
 
@@ -57,9 +57,9 @@ export default (requests, Component) => {
 
     componentWillUnmount() {
       let copySubs = Object.assign({}, this.subs);
-
+      pubSubStore.cancelSubContainer(this);
       this.cancelSubscriptions();
-      this.handler();
+      this.doAutoRun();
       this.garbageCollector(copySubs);
     }
 
@@ -67,18 +67,7 @@ export default (requests, Component) => {
       return <Component {...this.state} options={this.props.options} {...this.props} />;
     }
 
-    /**
-     * Reactive method. This method will be called whenever
-     * relevant changes happen in the store.
-     */
-    getData(props) {
-      let temp = requests(this, props);
-      temp['loaders'] = this.getLoadersFromSubscriptions();
-
-      this.setState(temp);
-    }
-
-    getLoadersFromSubscriptions() {
+    get getLoadersFromSubscriptions() {
       const subsForContainer = _.filter(pubSubStore.subs, (s) => {
         return _.find(_.keys(this.subs), (subName) => {
           return subName === s.publicationNameWithParams;
@@ -86,7 +75,7 @@ export default (requests, Component) => {
       });
       return _.sumBy(subsForContainer, 'loaders');
     }
-
+    @action
     subscribe(publicationName, params, isReactive) {
       const publicationNameWithParams = publicationName + '?' + this.buildParams(params);
 
@@ -145,7 +134,7 @@ export default (requests, Component) => {
      *
      * @returns {DataStore}
      */
-    getDataStore() {
+    get getDataStore() {
       return dataStore;
     }
 
@@ -155,9 +144,9 @@ export default (requests, Component) => {
      * @param collectionName
      */
     getCollection(collectionName) {
-      this.getDataStore().createCollectionIfNotExists(collectionName);
+      dataStore.createCollectionIfNotExists(collectionName);
 
-      return this.getDataStore().collections[collectionName];
+      return dataStore.collections[collectionName];
     }
 
     /**
