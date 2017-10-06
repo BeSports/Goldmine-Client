@@ -45,12 +45,10 @@ export default (requests, Component) => {
         // Run changes in transaction.
         // When transaction is complete the necessary updates will take place.
         runInAction(() => {
-          let copySubs = Object.assign({}, this.subs);
-
+          let temp = requests(this, this.dataProps);
+          temp['loaders'] = this.getLoadersFromSubscriptions;
+          this.setState(temp);
           this.dataProps = nextProps;
-
-          this.cancelSubscriptions();
-          this.garbageCollector(copySubs);
         });
       }
     }
@@ -60,6 +58,7 @@ export default (requests, Component) => {
       pubSubStore.cancelSubContainer(this);
       this.cancelSubscriptions();
       this.doAutoRun();
+      delete this.doAutoRun;
       this.garbageCollector(copySubs);
     }
 
