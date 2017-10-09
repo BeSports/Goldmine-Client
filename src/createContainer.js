@@ -18,7 +18,7 @@ export default (requests, Component) => {
   return class SubContainer extends React.PureComponent {
     constructor(props) {
       super(props);
-
+      this.refresh = this.refresh.bind(this);
       this.subs = {};
       this.garbageCollectorRunning = false;
       this.dataProps = props;
@@ -27,13 +27,15 @@ export default (requests, Component) => {
 
     componentWillMount() {
       this.setState({
-          loaders: this.loaders
+        loaders: this.loaders,
+        refresh: this.refresh,
       });
       pubSubStore.registerSubContainer(this);
       this.doAutoRun = () => {
         if (!this.garbageCollectorRunning) {
           let temp = requests(this, this.dataProps);
           temp['loaders'] = this.getLoadersFromSubscriptions;
+          temp['refresh'] = this.refresh;
           this.setState(temp);
         }
       };
@@ -47,6 +49,7 @@ export default (requests, Component) => {
         runInAction(() => {
           let temp = requests(this, this.dataProps);
           temp['loaders'] = this.getLoadersFromSubscriptions;
+          temp['refresh'] = this.refresh;
           this.setState(temp);
           this.dataProps = nextProps;
         });
@@ -62,13 +65,31 @@ export default (requests, Component) => {
       this.garbageCollector(copySubs);
     }
 
+    refresh() {
+      console.log('in refresh');
+      this.cancelSubscriptions();
+      this.garbageCollector(Object.assign({}, this.subs));
+      this.setState({
+        loaders: this.loaders,
+      });
+      this.doAutoRun = () => {
+        if (!this.garbageCollectorRunning) {
+          let temp = requests(this, this.dataProps);
+          temp['loaders'] = this.getLoadersFromSubscriptions;
+          temp['refresh'] = this.refresh;
+          this.setState(temp);
+        }
+      };
+      this.doAutoRun();
+    }
+
     render() {
       return <Component {...this.state} options={this.props.options} {...this.props} />;
     }
 
     get getLoadersFromSubscriptions() {
-      const subsForContainer = _.filter(pubSubStore.subs, (s) => {
-        return _.find(_.keys(this.subs), (subName) => {
+      const subsForContainer = _.filter(pubSubStore.subs, s => {
+        return _.find(_.keys(this.subs), subName => {
           return subName === s.publicationNameWithParams;
         });
       });
