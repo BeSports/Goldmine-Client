@@ -1,6 +1,6 @@
 {
   "name": "goldmine-client",
-  "version": "0.6.3",
+  "version": "0.6.5",
   "description": "A framework for building reactive web apps.",
   "main": "build/index.js",
   "scripts": {
@@ -36,7 +36,7 @@
       "email": "michiel@mitchken.com"
     }
   ],
-  "dependencies": {
+  "peerDependencies": {
     "lodash": "^4.17.4",
     "mobx": "^3.1.16",
     "mobx-react": "^4.2.1",

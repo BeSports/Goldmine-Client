@@ -43,6 +43,10 @@ export default class MainContainer extends React.Component {
     });
   }
 
+  componentWillUnmount() {
+    this.socket.close();
+  }
+
   render() {
     return null;
   }
