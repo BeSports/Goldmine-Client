@@ -1,5 +1,6 @@
 import { observable, action } from 'mobx';
 import _ from 'lodash';
+import mobx from 'mobx';
 
 class PubSubStore {
   @observable subs = [];

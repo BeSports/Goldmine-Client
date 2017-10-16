@@ -60,13 +60,11 @@ export default (requests, Component) => {
       let copySubs = Object.assign({}, this.subs);
       pubSubStore.cancelSubContainer(this);
       this.cancelSubscriptions();
-      this.doAutoRun();
       delete this.doAutoRun;
       this.garbageCollector(copySubs);
     }
 
     refresh() {
-      console.log('in refresh');
       this.cancelSubscriptions();
       this.garbageCollector(Object.assign({}, this.subs));
       this.setState({
