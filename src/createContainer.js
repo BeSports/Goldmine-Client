@@ -72,7 +72,7 @@ export default (requests, Component) => {
       });
       this.doAutoRun = () => {
         if (!this.garbageCollectorRunning) {
-          let temp = requests(this, this.dataProps);
+          let temp = requests(this, this.dataProps, true);
           temp['loaders'] = this.getLoadersFromSubscriptions;
           temp['refresh'] = this.refresh;
           this.setState(temp);
