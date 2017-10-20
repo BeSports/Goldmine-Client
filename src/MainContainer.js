@@ -16,7 +16,6 @@ import dataStore from './stores/DataStore';
 export default class MainContainer extends React.Component {
   constructor(props) {
     super(props);
-
     this.subs = {};
     this.socket = io(props.host);
     if (props.driver) {
@@ -28,6 +27,17 @@ export default class MainContainer extends React.Component {
   }
 
   componentWillMount() {
+   this.startSocket();
+    autorun(() => {
+      this.handleSubscriptions(pubSubStore.subs);
+    });
+  }
+
+  componentWillUnmount() {
+    this.socket.close();
+  }
+
+  startSocket() {
     if (this.props.auth) {
       this.socket.on('connect', () => {
         this.socket.emit('authenticate', this.props.auth);
@@ -38,13 +48,17 @@ export default class MainContainer extends React.Component {
         }
       });
     }
-    autorun(() => {
-      this.handleSubscriptions(pubSubStore.subs);
-    });
   }
 
-  componentWillUnmount() {
-    this.socket.close();
+  componentWillReceiveProps(nextProps) {
+    if (JSON.stringify(nextProps) !== JSON.stringify(this.props)) {
+      PubSubStore.subs.clear();
+      PubSubStore.subContainers.clear();
+      dataStore.collections.clear();
+      this.socket.close();
+      this.socket = io(nextProps.host);
+      this.startSocket();
+    }
   }
 
   render() {
@@ -61,7 +75,7 @@ export default class MainContainer extends React.Component {
     _.forEach(newSubs, obj => {
       if (!this.subs.hasOwnProperty(obj.publicationNameWithParams)) {
         let listener = payload => {
-          console.log(payload);
+          console.log(payload, obj.publicationNameWithParams);
           dataStore.change(obj.publicationNameWithParams, payload, obj.options);
           pubSubStore.subs = _.map(pubSubStore.subs, subscription => {
             if (subscription.publicationNameWithParams === obj.publicationNameWithParams) {

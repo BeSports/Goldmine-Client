@@ -47,11 +47,11 @@ export default (requests, Component) => {
         // Run changes in transaction.
         // When transaction is complete the necessary updates will take place.
         runInAction(() => {
+          this.dataProps = nextProps;
           let temp = requests(this, this.dataProps);
           temp['loaders'] = this.getLoadersFromSubscriptions;
           temp['refresh'] = this.refresh;
           this.setState(temp);
-          this.dataProps = nextProps;
         });
       }
     }
