@@ -1,7 +1,6 @@
-import { observable, action, extendObservable } from 'mobx';
+import { observable, action, extendObservable, toJS } from 'mobx';
 import _ from 'lodash';
 import OperationTypes from '../enums/OperationTypes';
-import pubSubStore from './PubSubStore';
 
 class DataStore {
   @observable collections = {};
@@ -86,6 +85,7 @@ class DataStore {
    */
   @action
   updateDocument(collectionName, response, data, dbObject) {
+
     // Check if dbObject is given along with the method call.
     if (dbObject === undefined) {
       //TODO: check if obsolete
@@ -110,6 +110,10 @@ class DataStore {
 
     // Update properties or add new ones.
     _.forEach(data, (value, key) => {
+      if(key === '__publicationNameWithParams') {
+        dbObject['__publicationNameWithParams'].push(data['__publicationNameWithParams'][0]);
+        return;
+      }
       if (dbObject instanceof Array) {
         _.forEach(dbObject, obj => {
           if (obj[response.target].hasOwnProperty(key)) {
@@ -132,7 +136,6 @@ class DataStore {
         }
       }
     });
-
     if (!(dbObject instanceof Array)) {
       // Make new properties observable.
       extendObservable(dbObject, temp);
@@ -149,7 +152,6 @@ class DataStore {
   @action
   insertDocument(publicationNameWithParams, collectionName, data, options) {
     this.createCollectionIfNotExists(collectionName);
-    data['__publicationNameWithParams'] = [publicationNameWithParams];
     if (!this.documentExists(collectionName, data)) {
       // If limit is defined in options, first delete an item.
       if (options !== undefined && options.limit !== undefined && options.sortBy !== undefined) {

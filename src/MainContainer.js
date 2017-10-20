@@ -52,9 +52,8 @@ export default class MainContainer extends React.Component {
 
   componentWillReceiveProps(nextProps) {
     if (JSON.stringify(nextProps) !== JSON.stringify(this.props)) {
-      PubSubStore.subs.clear();
-      PubSubStore.subContainers.clear();
-      dataStore.collections.clear();
+      pubSubStore.subs.clear();
+      pubSubStore.subContainers.clear();
       this.socket.close();
       this.socket = io(nextProps.host);
       this.startSocket();
