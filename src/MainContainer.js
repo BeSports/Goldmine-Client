@@ -27,7 +27,7 @@ export default class MainContainer extends React.Component {
   }
 
   componentWillMount() {
-   this.startSocket();
+    this.startSocket();
     autorun(() => {
       this.handleSubscriptions(pubSubStore.subs);
     });
@@ -73,16 +73,21 @@ export default class MainContainer extends React.Component {
     _.forEach(newSubs, obj => {
       if (!this.subs.hasOwnProperty(obj.publicationNameWithParams)) {
         let listener = payload => {
-          console.log(payload, obj.publicationNameWithParams);
-          dataStore.change(obj.publicationNameWithParams, payload, obj.options);
+          console.log(payload);
+          dataStore.change(payload);
           pubSubStore.subs = _.map(pubSubStore.subs, subscription => {
-            if (subscription.publicationNameWithParams === obj.publicationNameWithParams) {
+            // set the loaders of the correct subscritpion to 0
+            if (
+              subscription.publicationNameWithParams === obj.publicationNameWithParams &&
+              payload.type === 'init'
+            ) {
               const clone = _.cloneDeep(subscription);
               clone.loaders = 0;
               return clone;
             }
             return subscription;
           });
+          // rerender the containers whom are subscribing to the publication
           _.map(pubSubStore.subContainers, sc => {
             if (sc.subs && _.includes(_.keys(sc.subs), obj.publicationNameWithParams)) {
               sc.doAutoRun();
@@ -95,8 +100,7 @@ export default class MainContainer extends React.Component {
         this.socket.on(obj.publicationNameWithParams, listener);
         this.socket.emit('subscribe', {
           publicationNameWithParams: obj.publicationNameWithParams,
-          isReactive: obj.isReactive,
-          options: obj.options,
+          isReactive: obj.isReactive
         });
       }
     });

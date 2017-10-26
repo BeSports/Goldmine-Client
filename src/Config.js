@@ -4,6 +4,6 @@
  */
 export default {
   drivers: {
-    orientdb: '_id'
+    orientdb: 'rid'
   }
 };
