@@ -18,6 +18,10 @@ export default class MainContainer extends React.Component {
     super(props);
     this.subs = {};
     this.socket = io(props.host);
+    this.state = {
+      updateLogs: props.updateLogs,
+      initLogs: props.initLogs
+    };
     if (props.driver) {
       dataStore.setPrimaryKey(Config.drivers[props.driver]);
     } else {
@@ -73,8 +77,10 @@ export default class MainContainer extends React.Component {
     _.forEach(newSubs, obj => {
       if (!this.subs.hasOwnProperty(obj.publicationNameWithParams)) {
         let listener = payload => {
-          console.log(payload);
-          dataStore.change(payload);
+          if(this.state.initLogs) {
+            console.log(payload);
+          }
+          dataStore.change(payload, this.state.updateLogs);
           pubSubStore.subs = _.map(pubSubStore.subs, subscription => {
             // set the loaders of the correct subscritpion to 0
             if (

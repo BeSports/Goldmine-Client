@@ -47,16 +47,15 @@ class DataStore {
    * @param options
    */
   @action
-  change(response) {
+  change(response, updateLogs) {
     _.forEach(response.data, main => {
       _.forEach(main.data, document => {
         // Check if document is already in the store.
         const dbObject = _.find(this.collections[main.collectionName], this.paramsFind(document));
-
         if (dbObject === undefined) {
-          this.insertDocument(main.collectionName, document, response);
+          this.insertDocument(main.collectionName, document, response, updateLogs);
         } else {
-          this.updateDocument(response, document, dbObject);
+          this.updateDocument(response, document, dbObject, updateLogs);
         }
       });
     });
@@ -74,11 +73,14 @@ class DataStore {
    * @param dbObject
    */
   @action
-  updateDocument(response, updateDocuement, dbObject) {
+  updateDocument(response, updateDocuement, dbObject, updateLogs) {
     if (_.has(updateDocuement, 'differences')) {
       _.map(updateDocuement.differences, diff => {
         deepDifference.applyChange(dbObject, {}, diff);
       });
+      if(updateLogs) {
+        console.log(toJS(dbObject));
+      }
     } else {
       const __publicationNameWithParams = _.concat(
         dbObject['__publicationNameWithParams'],
@@ -96,7 +98,7 @@ class DataStore {
    * @param data
    */
   @action
-  insertDocument(collectionName, data, response) {
+  insertDocument(collectionName, data, response, updateLogs) {
     this.createCollectionIfNotExists(collectionName);
     if (!this.documentExists(collectionName, data)) {
       this.collections[collectionName].push(data);
@@ -106,6 +108,7 @@ class DataStore {
         response,
         data,
         _.find(this.collections[collectionName], this.paramsFind(data)),
+        updateLogs
       );
     }
   }
