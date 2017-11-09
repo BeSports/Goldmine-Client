@@ -55,7 +55,19 @@ class DataStore {
         if (dbObject === undefined) {
           this.insertDocument(main.collectionName, document, response, updateLogs);
         } else {
-          this.updateDocument(response, document, dbObject, updateLogs);
+          if (document.removeFromSub) {
+            if (_.size(toJS(dbObject['__publicationNameWithParams'])) > 1) {
+              dbObject['__publicationNameWithParams'].replace(
+                _.filter(toJS(dbObject['__publicationNameWithParams']), pnwp => {
+                  return document.removeFromSub !== pnwp;
+                }),
+              );
+            } else {
+              this.deleteDocument(dbObject, main.collectionName);
+            }
+          } else {
+            this.updateDocument(response, document, dbObject, updateLogs);
+          }
         }
       });
     });
@@ -78,12 +90,12 @@ class DataStore {
       _.map(updateDocuement.differences, diff => {
         deepDifference.applyChange(dbObject, {}, diff);
       });
-      if(updateLogs) {
+      if (updateLogs) {
         console.log(toJS(dbObject));
       }
     } else {
       const __publicationNameWithParams = _.concat(
-        dbObject['__publicationNameWithParams'],
+        toJS(dbObject['__publicationNameWithParams']),
         updateDocuement['__publicationNameWithParams'],
       );
       extendObservable(dbObject, updateDocuement, { __publicationNameWithParams });
@@ -108,7 +120,7 @@ class DataStore {
         response,
         data,
         _.find(this.collections[collectionName], this.paramsFind(data)),
-        updateLogs
+        updateLogs,
       );
     }
   }
@@ -122,7 +134,6 @@ class DataStore {
    */
   documentExists(collectionName, data) {
     const document = _.find(this.collections[collectionName], this.paramsFind(data));
-
     return document !== undefined;
   }
 
@@ -132,18 +143,8 @@ class DataStore {
    * @param response
    */
   @action
-  deleteDocument(response) {
-    let tempObj = undefined;
-
-    if (response.target === undefined) {
-      tempObj = _.find(this.collections[response.collectionName], ['_id', response.data._id]);
-    }
-
-    if (tempObj === undefined) {
-      throw new Error("Could not delete document, because it's not in the store.");
-    }
-
-    this.collections[response.collectionName].remove(tempObj);
+  deleteDocument(tempObj, collectionName) {
+    this.collections[collectionName].remove(tempObj);
   }
 
   /**
@@ -153,7 +154,6 @@ class DataStore {
    */
   @action
   garbageCollector(publicationNameWithParams) {
-    // TODO: array van maken voor meerdere subscriptions te koppelen en bij de laatste pas verwijderen.
     _.map(this.collections, (collection, i) => {
       _.remove(collection, o => {
         return o['__publicationNameWithParams'] === observable([publicationNameWithParams]);
@@ -162,9 +162,11 @@ class DataStore {
         _.map(collection, o => {
           if (_.includes(o['__publicationNameWithParams'], publicationNameWithParams)) {
             let oCopy = o;
-            oCopy['__publicationNameWithParams'] = _.remove(
+            oCopy['__publicationNameWithParams'] = _.filter(
               o['__publicationNameWithParams'],
-              publicationNameWithParams,
+              (obj) => {
+                return obj !== publicationNameWithParams
+              }
             );
             if (_.size(oCopy['__publicationNameWithParams']) === 0) {
               return null;
@@ -193,7 +195,7 @@ class DataStore {
     if (data[this.primaryKey]) {
       paramsFind[this.primaryKey] = data[this.primaryKey];
     } else {
-      paramsFind['@rid'] = data['@rid'];
+      paramsFind['rid'] = data['rid'];
     }
     return paramsFind;
   }

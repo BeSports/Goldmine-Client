@@ -1,5 +1,5 @@
 import React from 'react';
-import { autorun } from 'mobx';
+import { autorun, toJS } from 'mobx';
 import io from 'socket.io-client';
 import _ from 'lodash';
 
@@ -95,7 +95,7 @@ export default class MainContainer extends React.Component {
           });
           // rerender the containers whom are subscribing to the publication
           _.map(pubSubStore.subContainers, sc => {
-            if (sc.subs && _.includes(_.keys(sc.subs), obj.publicationNameWithParams)) {
+            if (sc && sc.subs && _.includes(_.keys(toJS(sc.subs)), obj.publicationNameWithParams)) {
               sc.doAutoRun();
             }
           });

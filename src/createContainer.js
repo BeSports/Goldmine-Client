@@ -19,10 +19,15 @@ export default (requests, Component) => {
     constructor(props) {
       super(props);
       this.refresh = this.refresh.bind(this);
+      this.addSubToRecentCheck = this.addSubToRecentCheck.bind(this);
+      this.cancelSubscriptionsWithoutRecentCheck = this.cancelSubscriptionsWithoutRecentCheck.bind(
+        this,
+      );
       this.subs = {};
       this.garbageCollectorRunning = false;
       this.dataProps = props;
       this.loaders = 0;
+      this.recentChecks = [];
     }
 
     componentWillMount() {
@@ -52,6 +57,7 @@ export default (requests, Component) => {
           temp['loaders'] = this.getLoadersFromSubscriptions;
           temp['refresh'] = this.refresh;
           this.setState(temp);
+          this.cancelSubscriptionsWithoutRecentCheck();
         });
       }
     }
@@ -62,6 +68,16 @@ export default (requests, Component) => {
       this.cancelSubscriptions();
       delete this.doAutoRun;
       this.garbageCollector(copySubs);
+    }
+
+    cancelSubscriptionsWithoutRecentCheck() {
+      _.forEach(this.subs, (isReactive, publicationNameWithParams) => {
+        if (!_.includes(this.recentChecks, publicationNameWithParams)) {
+          pubSubStore.cancelSubscription(publicationNameWithParams);
+          delete this.subs[publicationNameWithParams];
+        }
+      });
+      this.recentChecks = [];
     }
 
     refresh() {
@@ -85,6 +101,10 @@ export default (requests, Component) => {
       return <Component {...this.state} options={this.props.options} {...this.props} />;
     }
 
+    addSubToRecentCheck(publicationNameWithParams) {
+      this.recentChecks = _.concat(this.recentChecks, publicationNameWithParams);
+    }
+
     get getLoadersFromSubscriptions() {
       const subsForContainer = _.filter(pubSubStore.subs, s => {
         return _.find(_.keys(this.subs), subName => {
@@ -93,10 +113,12 @@ export default (requests, Component) => {
       });
       return _.sumBy(subsForContainer, 'loaders');
     }
+
     @action
     subscribe(publicationName, params, isReactive) {
       const publicationNameWithParams = publicationName + '?' + this.buildParams(params);
-
+      //to not be deleted
+      this.addSubToRecentCheck(publicationNameWithParams);
       if (this.subs.hasOwnProperty(publicationNameWithParams)) {
         return;
       }
