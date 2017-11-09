@@ -1,5 +1,5 @@
 import React from 'react';
-import { autorun, runInAction, computed, observable, action } from 'mobx';
+import { autorun, runInAction, computed, observable, action, toJS } from 'mobx';
 import _ from 'lodash';
 
 import pubSubStore from './stores/PubSubStore';
@@ -18,7 +18,6 @@ export default (requests, Component) => {
   return class SubContainer extends React.PureComponent {
     constructor(props) {
       super(props);
-      this.refresh = this.refresh.bind(this);
       this.addSubToRecentCheck = this.addSubToRecentCheck.bind(this);
       this.cancelSubscriptionsWithoutRecentCheck = this.cancelSubscriptionsWithoutRecentCheck.bind(
         this,
@@ -33,18 +32,39 @@ export default (requests, Component) => {
     componentWillMount() {
       this.setState({
         loaders: this.loaders,
-        refresh: this.refresh,
       });
       pubSubStore.registerSubContainer(this);
       this.doAutoRun = () => {
         if (!this.garbageCollectorRunning) {
           let temp = requests(this, this.dataProps);
           temp['loaders'] = this.getLoadersFromSubscriptions;
-          temp['refresh'] = this.refresh;
+          temp['data'] = this.getDataObject;
           this.setState(temp);
+          if (_.has(this, 'props.onLoaded') && _.has(this, 'props.limit') && this.getLoadersFromSubscriptions === 0) {
+            this.props.onLoaded(_.sum(_.map(this.getDataObject, _.size)) === this.props.limit);
+          }
         }
       };
       this.doAutoRun();
+    }
+
+    get getDataObject() {
+      return _.pickBy(
+        _.mapValues(toJS(dataStore.collections), collection => {
+          return _.filter(
+            _.map(collection, value => {
+              if (_.size(_.intersection(value['__publicationNameWithParams'], _.keys(this.subs)))) {
+                return value;
+              }
+              return undefined;
+            }),
+            o => {
+              return !!o;
+            },
+          );
+        }),
+        _.size,
+      );
     }
 
     componentWillReceiveProps(nextProps) {
@@ -54,8 +74,6 @@ export default (requests, Component) => {
         runInAction(() => {
           this.dataProps = nextProps;
           let temp = requests(this, this.dataProps);
-          temp['loaders'] = this.getLoadersFromSubscriptions;
-          temp['refresh'] = this.refresh;
           this.setState(temp);
           this.cancelSubscriptionsWithoutRecentCheck();
         });
@@ -78,23 +96,6 @@ export default (requests, Component) => {
         }
       });
       this.recentChecks = [];
-    }
-
-    refresh() {
-      this.cancelSubscriptions();
-      this.garbageCollector(Object.assign({}, this.subs));
-      this.setState({
-        loaders: this.loaders,
-      });
-      this.doAutoRun = () => {
-        if (!this.garbageCollectorRunning) {
-          let temp = requests(this, this.dataProps, true);
-          temp['loaders'] = this.getLoadersFromSubscriptions;
-          temp['refresh'] = this.refresh;
-          this.setState(temp);
-        }
-      };
-      this.doAutoRun();
     }
 
     render() {
