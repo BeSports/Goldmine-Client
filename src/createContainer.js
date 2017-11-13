@@ -40,7 +40,11 @@ export default (requests, Component) => {
           temp['loaders'] = this.getLoadersFromSubscriptions;
           temp['data'] = this.getDataObject;
           this.setState(temp);
-          if (_.has(this, 'props.onLoaded') && _.has(this, 'props.limit') && this.getLoadersFromSubscriptions === 0) {
+          if (
+            _.has(this, 'props.onLoaded') &&
+            _.has(this, 'props.limit') &&
+            this.getLoadersFromSubscriptions === 0
+          ) {
             this.props.onLoaded(_.sum(_.map(this.getDataObject, _.size)) === this.props.limit);
           }
         }
@@ -99,7 +103,8 @@ export default (requests, Component) => {
     }
 
     render() {
-      return <Component {...this.state} options={this.props.options} {...this.props} />;
+      const ToRender = Component || this.dataProps.component;
+      return <ToRender {...this.state} options={this.props.options} {...this.props} />;
     }
 
     addSubToRecentCheck(publicationNameWithParams) {
