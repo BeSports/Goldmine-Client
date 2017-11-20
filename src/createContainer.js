@@ -76,6 +76,7 @@ export default (requests, Component) => {
         // Run changes in transaction.
         // When transaction is complete the necessary updates will take place.
         runInAction(() => {
+          this.recentChecks = [];
           this.dataProps = nextProps;
           let temp = requests(this, this.dataProps);
           this.setState(temp);
@@ -93,6 +94,7 @@ export default (requests, Component) => {
     }
 
     cancelSubscriptionsWithoutRecentCheck() {
+      console.log('cancelling', this.recentChecks, this.subs);
       _.forEach(this.subs, (isReactive, publicationNameWithParams) => {
         if (!_.includes(this.recentChecks, publicationNameWithParams)) {
           pubSubStore.cancelSubscription(publicationNameWithParams);
