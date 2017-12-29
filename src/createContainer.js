@@ -94,7 +94,6 @@ export default (requests, Component) => {
     }
 
     cancelSubscriptionsWithoutRecentCheck() {
-      console.log('cancelling', this.recentChecks, this.subs);
       _.forEach(this.subs, (isReactive, publicationNameWithParams) => {
         if (!_.includes(this.recentChecks, publicationNameWithParams)) {
           pubSubStore.cancelSubscription(publicationNameWithParams);
