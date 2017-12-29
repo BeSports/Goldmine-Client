@@ -85,9 +85,9 @@ class DataStore {
    * @param dbObject
    */
   @action
-  updateDocument(response, updateDocuement, dbObject, updateLogs) {
-    if (_.has(updateDocuement, 'differences')) {
-      _.map(updateDocuement.differences, diff => {
+  updateDocument(response, updateDocument, dbObject, updateLogs) {
+    if (_.has(updateDocument, 'differences')) {
+      _.map(updateDocument.differences, diff => {
         deepDifference.applyChange(dbObject, {}, diff);
       });
       if (updateLogs) {
@@ -96,9 +96,9 @@ class DataStore {
     } else {
       const __publicationNameWithParams = _.concat(
         toJS(dbObject['__publicationNameWithParams']),
-        updateDocuement['__publicationNameWithParams'],
+        updateDocument['__publicationNameWithParams'],
       );
-      extendObservable(dbObject, updateDocuement, { __publicationNameWithParams });
+      extendObservable(dbObject, updateDocument, { __publicationNameWithParams });
     }
   }
 
@@ -164,9 +164,9 @@ class DataStore {
             let oCopy = o;
             oCopy['__publicationNameWithParams'] = _.filter(
               o['__publicationNameWithParams'],
-              (obj) => {
-                return obj !== publicationNameWithParams
-              }
+              obj => {
+                return obj !== publicationNameWithParams;
+              },
             );
             if (_.size(oCopy['__publicationNameWithParams']) === 0) {
               return null;

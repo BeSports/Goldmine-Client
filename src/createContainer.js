@@ -90,7 +90,6 @@ export default (requests, Component) => {
       pubSubStore.cancelSubContainer(this);
       this.cancelSubscriptions();
       delete this.doAutoRun;
-      this.garbageCollector(copySubs);
     }
 
     cancelSubscriptionsWithoutRecentCheck() {

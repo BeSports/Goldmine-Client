@@ -1,6 +1,7 @@
 import { observable, action } from 'mobx';
 import _ from 'lodash';
 import mobx from 'mobx';
+import DataStore from './DataStore';
 
 class PubSubStore {
   @observable subs = [];
@@ -36,6 +37,7 @@ class PubSubStore {
     if (sub) {
       if (sub.times === 1) {
         _.remove(this.subs, { publicationNameWithParams: publicationNameWithParams });
+        DataStore.garbageCollector(publicationNameWithParams);
       } else if (sub.times >= 2) {
         const newTimes = sub.times - 1;
         this.subs[
