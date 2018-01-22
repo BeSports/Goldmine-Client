@@ -20,7 +20,7 @@ export default class MainContainer extends React.Component {
     this.socket = io(props.host);
     this.state = {
       updateLogs: props.updateLogs,
-      initLogs: props.initLogs
+      initLogs: props.initLogs,
     };
     if (props.driver) {
       dataStore.setPrimaryKey(Config.drivers[props.driver]);
@@ -46,9 +46,12 @@ export default class MainContainer extends React.Component {
       this.socket.on('connect', () => {
         this.socket.emit('authenticate', this.props.auth);
       });
-      this.socket.on('disconnect', () => {
+      this.socket.on('disconnect', t => {
         if (typeof this.props.onDisconnect === 'function') {
-          this.props.onDisconnect();
+          this.props.onDisconnect(
+            _.includes(t, 'client') ? 'client' : 'server',
+            _.includes(t, 'client') ? 'Lost connection' : 'Incorrect jwt',
+          );
         }
       });
     }
@@ -77,7 +80,7 @@ export default class MainContainer extends React.Component {
     _.forEach(newSubs, obj => {
       if (!this.subs.hasOwnProperty(obj.publicationNameWithParams)) {
         let listener = payload => {
-          if(this.state.initLogs) {
+          if (this.state.initLogs) {
             console.log(payload);
           }
           dataStore.change(payload, this.state.updateLogs);
@@ -106,7 +109,7 @@ export default class MainContainer extends React.Component {
         this.socket.on(obj.publicationNameWithParams, listener);
         this.socket.emit('subscribe', {
           publicationNameWithParams: obj.publicationNameWithParams,
-          isReactive: obj.isReactive
+          isReactive: obj.isReactive,
         });
       }
     });
