@@ -48,11 +48,23 @@ export default class MainContainer extends React.Component {
       });
       this.socket.on('disconnect', t => {
         if (typeof this.props.onDisconnect === 'function') {
-          this.props.onDisconnect(
-            _.includes(t, 'client') ? 'client' : 'server',
-            _.includes(t, 'client') ? 'Lost connection' : 'Incorrect jwt',
-          );
+          if (t === 'io server disconnect') {
+            this.props.onDisconnect('server', 'Wrong jwt');
+          } else if (t === 'transport close') {
+            this.props.onDisconnect('server', 'Goldmine-server went down');
+          } else {
+            this.props.onDisconnect(
+              _.includes(t, 'client') ? 'client' : 'server',
+              _.includes(t, 'client') ? 'A client side disconnect' : 'A server side disconnect',
+            );
+          }
         }
+      });
+      this.socket.on('connect_error', t => {
+        this.props.onDisconnect('client', 'No connection was established to the server');
+      });
+      this.socket.on('connect_timeout', t => {
+        this.props.onDisconnect('client', 'Connection to the server timed out');
       });
     }
   }
