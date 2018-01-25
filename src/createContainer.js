@@ -45,7 +45,7 @@ export default (requests, Component) => {
             _.has(this, 'props.limit') &&
             this.getLoadersFromSubscriptions === 0
           ) {
-            this.props.onLoaded(_.sum(_.map(this.getDataObject, _.size)) === this.props.limit);
+            this.props.onLoaded(_.sum(_.map(this.getDataObject, _.size)) >= this.props.limit);
           }
         }
       };
