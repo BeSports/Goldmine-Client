@@ -98,7 +98,9 @@ class DataStore {
         toJS(dbObject['__publicationNameWithParams']),
         updateDocument['__publicationNameWithParams'],
       );
-      extendObservable(dbObject, updateDocument, { __publicationNameWithParams });
+      extendObservable(dbObject, _.merge(toJS(dbObject), updateDocument), {
+        __publicationNameWithParams,
+      });
     }
   }
 
