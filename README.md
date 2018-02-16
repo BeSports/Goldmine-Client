@@ -195,7 +195,9 @@ import CreatureContainer from './containers/CreatureContainer'
 Now run the application again and see the result.
 
     $ npm start
-## Contributors
 
+## Contributors
 - [Jasper Dansercoer](http://www.jdansercoer.be/)
 - [Ruben Vermeulen](https://rubenvermeulen.be/)
+- [Michiel Cuvelier](https://goo.gl/kU3HYz)
+- [Xander Berkein](http://xanderberkein.be/)
