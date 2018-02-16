@@ -45,6 +45,9 @@ export default class MainContainer extends React.Component {
     if (this.props.auth) {
       this.socket.on('connect', () => {
         this.socket.emit('authenticate', this.props.auth);
+        if (typeof _this3.props.onConnect === 'function') {
+          _this3.props.onConnect('server', 'Connected');
+        }
       });
       this.socket.on('disconnect', t => {
         if (typeof this.props.onDisconnect === 'function') {
