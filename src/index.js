@@ -1,6 +1,6 @@
 import MainContainer from './MainContainer';
 import createContainer from './createContainer';
 import GoldMine from './GoldMine';
-import WithSubscriptions from './WithSubscriptions';
+import withGoldmine from './withGoldmine';
 
-export { MainContainer, createContainer, GoldMine, WithSubscriptions };
+export { MainContainer, createContainer, GoldMine, withGoldmine };

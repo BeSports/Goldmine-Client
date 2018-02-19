@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import _ from 'lodash';
 
-const WithSubscriptions = (WrappedComponent, subscriptions) => {
+const withGoldmine = (WrappedComponent, subscriptions) => {
   return class extends React.PureComponent {
     constructor(props) {
       super(props);
@@ -17,4 +17,4 @@ const WithSubscriptions = (WrappedComponent, subscriptions) => {
   };
 };
 
-export default WithSubscriptions;
+export default withGoldmine;
