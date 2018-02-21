@@ -49,6 +49,9 @@ export default class MainContainer extends React.Component {
           this.props.onConnect('server', 'Connected');
         }
       });
+      if (this.props.socket && _.isFunction(this.props.socket)) {
+        this.props.socket(this.socket);
+      }
       this.socket.on('disconnect', t => {
         if (typeof this.props.onDisconnect === 'function') {
           if (t === 'io server disconnect') {
