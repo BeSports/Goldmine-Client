@@ -59,6 +59,3 @@ typings/
 
 # Webstorm
 /.idea/
-
-# Babel generated
-/build/
