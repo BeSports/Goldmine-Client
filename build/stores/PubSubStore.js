@@ -108,7 +108,8 @@ var PubSubStore = (_class = function () {
       var sub = _lodash2.default.find(this.subs, { publicationNameWithParams: publicationNameWithParams });
       if (sub) {
         if (sub.times === 1) {
-          _lodash2.default.remove(this.subs, { publicationNameWithParams: publicationNameWithParams });
+          var index = _lodash2.default.findIndex(this.subs, { publicationNameWithParams: publicationNameWithParams });
+          this.subs.splice(index, 1);
           _DataStore2.default.garbageCollector(publicationNameWithParams);
         } else if (sub.times >= 2) {
           var newTimes = sub.times - 1;
@@ -124,7 +125,8 @@ var PubSubStore = (_class = function () {
   }, {
     key: 'cancelSubContainer',
     value: function cancelSubContainer(subContainer) {
-      _lodash2.default.remove(this.subContainers, subContainer);
+      var index = _lodash2.default.findIndex(this.subContainers, subContainer);
+      this.subContainers.splice(index, 1);
     }
   }]);
 

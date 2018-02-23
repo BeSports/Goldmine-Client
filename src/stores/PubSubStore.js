@@ -15,13 +15,13 @@ class PubSubStore {
    */
   @action
   subscribe(publicationNameWithParams, isReactive) {
-    const sub = _.find(this.subs, { publicationNameWithParams: publicationNameWithParams });
+    const sub = _.find(this.subs, { publicationNameWithParams });
     if (sub === undefined) {
       this.subs.push({ publicationNameWithParams, isReactive, loaders: 1, times: 1 });
     } else {
       const newTimes = sub.times + 1;
       this.subs[
-        _.findIndex(this.subs, { publicationNameWithParams: publicationNameWithParams })
+        _.findIndex(this.subs, { publicationNameWithParams })
       ] = _.merge({}, sub, { times: newTimes });
     }
   }
@@ -33,15 +33,16 @@ class PubSubStore {
    */
   @action
   cancelSubscription(publicationNameWithParams) {
-    const sub = _.find(this.subs, { publicationNameWithParams: publicationNameWithParams });
+    const sub = _.find(this.subs, { publicationNameWithParams });
     if (sub) {
       if (sub.times === 1) {
-        _.remove(this.subs, { publicationNameWithParams: publicationNameWithParams });
+        const index = _.findIndex(this.subs, { publicationNameWithParams });
+        this.subs.splice(index, 1);
         DataStore.garbageCollector(publicationNameWithParams);
       } else if (sub.times >= 2) {
         const newTimes = sub.times - 1;
         this.subs[
-          _.findIndex(this.subs, { publicationNameWithParams: publicationNameWithParams })
+          _.findIndex(this.subs, { publicationNameWithParams })
         ] = _.merge({}, sub, { times: newTimes });
       }
     }
@@ -54,7 +55,8 @@ class PubSubStore {
 
   @action
   cancelSubContainer(subContainer) {
-    _.remove(this.subContainers, subContainer);
+    const index = _.findIndex(this.subContainers, subContainer );
+    this.subContainers.splice(index, 1);
   }
 }
 
