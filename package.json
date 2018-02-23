@@ -13,7 +13,12 @@
   "bugs": {
     "url": "https://github.com/BeSports/Goldmine-Client/issues"
   },
-  "keywords": ["goldmine", "reactive", "realtime", "client"],
+  "keywords": [
+    "goldmine",
+    "reactive",
+    "realtime",
+    "client"
+  ],
   "license": "LGPL-3.0",
   "contributors": [
     {
