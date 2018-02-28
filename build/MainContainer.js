@@ -55,7 +55,9 @@ var MainContainer = function (_React$Component) {
     var _this = _possibleConstructorReturn(this, (MainContainer.__proto__ || Object.getPrototypeOf(MainContainer)).call(this, props));
 
     _this.subs = {};
-    _this.socket = (0, _socket2.default)(props.host);
+    _this.socket = (0, _socket2.default)(props.host, {
+      transports: ['websocket']
+    });
     _this.state = {
       updateLogs: props.updateLogs,
       initLogs: props.initLogs
