@@ -11,7 +11,7 @@ const withGoldmine = (WrappedComponent, subscriptions) => {
     }
     render() {
       return (
-        <GoldMine subscriptions={subscriptions} component={WrappedComponent} {...this.props} />
+        <GoldMine subscriptions={subscriptions(this.props || {})} component={WrappedComponent} {...this.props} />
       );
     }
   };

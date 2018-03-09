@@ -45,7 +45,7 @@ var withGoldmine = function withGoldmine(WrappedComponent, subscriptions) {
     _createClass(_class, [{
       key: 'render',
       value: function render() {
-        return _react2.default.createElement(_GoldMine2.default, _extends({ subscriptions: subscriptions, component: WrappedComponent }, this.props));
+        return _react2.default.createElement(_GoldMine2.default, _extends({ subscriptions: subscriptions(this.props || {}), component: WrappedComponent }, this.props));
       }
     }]);
 
