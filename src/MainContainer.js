@@ -18,7 +18,8 @@ export default class MainContainer extends React.Component {
     super(props);
     this.subs = {};
     this.socket = io(props.host, {
-      transports: ['websocket', 'polling'],
+      transports: ['websocket'],
+      customData: props.auth,
     });
     this.state = {
       updateLogs: props.updateLogs,
@@ -46,7 +47,6 @@ export default class MainContainer extends React.Component {
   startSocket() {
     if (this.props.auth) {
       this.socket.on('connect', () => {
-        this.socket.emit('authenticate', this.props.auth);
         if (typeof this.props.onConnect === 'function') {
           this.props.onConnect('server', 'Connected');
         }
