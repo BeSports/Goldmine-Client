@@ -57,7 +57,7 @@ var MainContainer = function (_React$Component) {
     _this.subs = {};
     _this.socket = (0, _socket2.default)(props.host, {
       transports: ['websocket'],
-      customData: props.auth
+      query: props.auth
     });
     _this.state = {
       updateLogs: props.updateLogs,
@@ -94,7 +94,6 @@ var MainContainer = function (_React$Component) {
 
       if (this.props.auth) {
         this.socket.on('connect', function () {
-          _this3.socket.emit('authenticate', _this3.props.auth);
           if (typeof _this3.props.onConnect === 'function') {
             _this3.props.onConnect('server', 'Connected');
           }
