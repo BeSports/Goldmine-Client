@@ -18,7 +18,7 @@ export default class MainContainer extends React.Component {
     super(props);
     this.subs = {};
     this.socket = io(props.host, {
-      transports: ['websocket'],
+      transports: ['websocket', 'polling'],
     });
     this.state = {
       updateLogs: props.updateLogs,
