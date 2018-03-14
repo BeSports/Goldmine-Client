@@ -19,7 +19,7 @@ export default class MainContainer extends React.Component {
     this.subs = {};
     this.socket = io(props.host, {
       transports: ['websocket'],
-      query: props.auth,
+      query: props.auth ? props.auth : null,
     });
     this.state = {
       updateLogs: props.updateLogs,
@@ -45,43 +45,44 @@ export default class MainContainer extends React.Component {
   }
 
   startSocket() {
-    if (this.props.auth) {
-      this.socket.on('connect', () => {
-        if (typeof this.props.onConnect === 'function') {
-          this.props.onConnect('server', 'Connected');
-        }
-      });
-      if (this.props.socket && _.isFunction(this.props.socket)) {
-        this.props.socket(this.socket);
+    this.socket.on('connect', () => {
+      if (typeof this.props.onConnect === 'function') {
+        this.props.onConnect('server', 'Connected');
       }
-      this.socket.on('disconnect', t => {
-        if (typeof this.props.onDisconnect === 'function') {
-          if (t === 'io server disconnect') {
-            this.props.onDisconnect('server', 'Wrong jwt');
-          } else if (t === 'transport close') {
-            this.props.onDisconnect('server', 'Goldmine-server went down');
-          } else {
-            this.props.onDisconnect(
-              _.includes(t, 'client') ? 'client' : 'server',
-              _.includes(t, 'client') ? 'A client side disconnect' : 'A server side disconnect',
-            );
-          }
-        }
-      });
-      this.socket.on('connect_error', t => {
-        this.props.onDisconnect('client', 'No connection was established to the server');
-      });
-      this.socket.on('connect_timeout', t => {
-        this.props.onDisconnect('client', 'Connection to the server timed out');
-      });
+    });
+    if (this.props.socket && _.isFunction(this.props.socket)) {
+      this.props.socket(this.socket);
     }
+    this.socket.on('disconnect', t => {
+      if (typeof this.props.onDisconnect === 'function') {
+        if (t === 'io server disconnect') {
+          this.props.onDisconnect('server', 'Wrong jwt');
+        } else if (t === 'transport close') {
+          this.props.onDisconnect('server', 'Goldmine-server went down');
+        } else {
+          this.props.onDisconnect(
+            _.includes(t, 'client') ? 'client' : 'server',
+            _.includes(t, 'client') ? 'A client side disconnect' : 'A server side disconnect',
+          );
+        }
+      }
+    });
+    this.socket.on('connect_error', t => {
+      this.props.onDisconnect('client', 'No connection was established to the server');
+    });
+    this.socket.on('connect_timeout', t => {
+      this.props.onDisconnect('client', 'Connection to the server timed out');
+    });
   }
 
   componentWillReceiveProps(nextProps) {
     if (JSON.stringify(nextProps) !== JSON.stringify(this.props)) {
       pubSubStore.subs.clear();
       this.socket.close();
-      this.socket = io(nextProps.host);
+      this.socket = io(nextProps.host, {
+        transports: ['websocket'],
+        query: props.auth ? props.auth : null,
+      });
       this.startSocket();
     }
   }

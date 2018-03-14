@@ -56,7 +56,7 @@ var MainContainer = function (_React$Component) {
 
     _this.subs = {};
     _this.socket = (0, _socket2.default)(props.host, {
-      transports: ['websocket'],
+      transports: ['websocket', 'polling'],
       query: props.auth
     });
     _this.state = {
