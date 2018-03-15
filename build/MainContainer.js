@@ -11,6 +11,10 @@ var _react = require('react');
 
 var _react2 = _interopRequireDefault(_react);
 
+var _propTypes = require('prop-types');
+
+var _propTypes2 = _interopRequireDefault(_propTypes);
+
 var _mobx = require('mobx');
 
 var _socket = require('socket.io-client');
@@ -56,8 +60,8 @@ var MainContainer = function (_React$Component) {
 
     _this.subs = {};
     _this.socket = (0, _socket2.default)(props.host, {
-      transports: ['websocket', 'polling'],
-      query: props.auth
+      transports: props.polling ? ['polling', 'websocket'] : ['websocket'],
+      query: props.auth ? props.auth : null
     });
     _this.state = {
       updateLogs: props.updateLogs,
@@ -92,33 +96,31 @@ var MainContainer = function (_React$Component) {
     value: function startSocket() {
       var _this3 = this;
 
-      if (this.props.auth) {
-        this.socket.on('connect', function () {
-          if (typeof _this3.props.onConnect === 'function') {
-            _this3.props.onConnect('server', 'Connected');
-          }
-        });
-        if (this.props.socket && _lodash2.default.isFunction(this.props.socket)) {
-          this.props.socket(this.socket);
+      this.socket.on('connect', function () {
+        if (typeof _this3.props.onConnect === 'function') {
+          _this3.props.onConnect('server', 'Connected');
         }
-        this.socket.on('disconnect', function (t) {
-          if (typeof _this3.props.onDisconnect === 'function') {
-            if (t === 'io server disconnect') {
-              _this3.props.onDisconnect('server', 'Wrong jwt');
-            } else if (t === 'transport close') {
-              _this3.props.onDisconnect('server', 'Goldmine-server went down');
-            } else {
-              _this3.props.onDisconnect(_lodash2.default.includes(t, 'client') ? 'client' : 'server', _lodash2.default.includes(t, 'client') ? 'A client side disconnect' : 'A server side disconnect');
-            }
-          }
-        });
-        this.socket.on('connect_error', function (t) {
-          _this3.props.onDisconnect('client', 'No connection was established to the server');
-        });
-        this.socket.on('connect_timeout', function (t) {
-          _this3.props.onDisconnect('client', 'Connection to the server timed out');
-        });
+      });
+      if (this.props.socket && _lodash2.default.isFunction(this.props.socket)) {
+        this.props.socket(this.socket);
       }
+      this.socket.on('disconnect', function (t) {
+        if (typeof _this3.props.onDisconnect === 'function') {
+          if (t === 'io server disconnect') {
+            _this3.props.onDisconnect('server', 'Wrong jwt');
+          } else if (t === 'transport close') {
+            _this3.props.onDisconnect('server', 'Goldmine-server went down');
+          } else {
+            _this3.props.onDisconnect(_lodash2.default.includes(t, 'client') ? 'client' : 'server', _lodash2.default.includes(t, 'client') ? 'A client side disconnect' : 'A server side disconnect');
+          }
+        }
+      });
+      this.socket.on('connect_error', function (t) {
+        _this3.props.onDisconnect('client', 'No connection was established to the server');
+      });
+      this.socket.on('connect_timeout', function (t) {
+        _this3.props.onDisconnect('client', 'Connection to the server timed out');
+      });
     }
   }, {
     key: 'componentWillReceiveProps',
@@ -126,7 +128,10 @@ var MainContainer = function (_React$Component) {
       if (JSON.stringify(nextProps) !== JSON.stringify(this.props)) {
         _PubSubStore2.default.subs.clear();
         this.socket.close();
-        this.socket = (0, _socket2.default)(nextProps.host);
+        this.socket = (0, _socket2.default)(nextProps.host, {
+          transports: ['polling', 'websocket'],
+          query: props.auth ? props.auth : null
+        });
         this.startSocket();
       }
     }

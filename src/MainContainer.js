@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { autorun, toJS } from 'mobx';
 import io from 'socket.io-client';
 import _ from 'lodash';
@@ -18,7 +19,7 @@ export default class MainContainer extends React.Component {
     super(props);
     this.subs = {};
     this.socket = io(props.host, {
-      transports: ['websocket'],
+      transports: props.polling ? ['polling', 'websocket'] : ['websocket'],
       query: props.auth ? props.auth : null,
     });
     this.state = {
@@ -80,7 +81,7 @@ export default class MainContainer extends React.Component {
       pubSubStore.subs.clear();
       this.socket.close();
       this.socket = io(nextProps.host, {
-        transports: ['websocket'],
+        transports: ['polling', 'websocket'],
         query: props.auth ? props.auth : null,
       });
       this.startSocket();
