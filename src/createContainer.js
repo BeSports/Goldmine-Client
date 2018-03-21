@@ -49,12 +49,19 @@ export default (requests, Component) => {
           }
         }
       };
+
       this.doAutoRun();
     }
 
     get getDataObject() {
       return _.pickBy(
-        _.mapValues(toJS(dataStore.collections), collection => {
+        _.mapValues(toJS(dataStore.collections), (collection, collectionName) => {
+          if (
+            _.has(this.dataProps, 'collectionToLoadMore') &&
+            this.dataProps.collectionToLoadMore !== collectionName
+          ) {
+            return [];
+          }
           return _.filter(
             _.map(collection, value => {
               if (_.size(_.intersection(value['__publicationNameWithParams'], _.keys(this.subs)))) {

@@ -82,7 +82,7 @@ export default class MainContainer extends React.Component {
       this.socket.close();
       this.socket = io(nextProps.host, {
         transports: ['polling', 'websocket'],
-        query: props.auth ? props.auth : null,
+        query: nextProps.auth ? nextProps.auth : null,
       });
       this.startSocket();
     }

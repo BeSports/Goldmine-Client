@@ -113,6 +113,7 @@ exports.default = function (requests, Component) {
             }
           }
         };
+
         this.doAutoRun();
       }
     }, {
@@ -267,7 +268,10 @@ exports.default = function (requests, Component) {
       get: function get() {
         var _this6 = this;
 
-        return _lodash2.default.pickBy(_lodash2.default.mapValues((0, _mobx.toJS)(_DataStore2.default.collections), function (collection) {
+        return _lodash2.default.pickBy(_lodash2.default.mapValues((0, _mobx.toJS)(_DataStore2.default.collections), function (collection, collectionName) {
+          if (_lodash2.default.has(_this6.dataProps, 'collectionToLoadMore') && _this6.dataProps.collectionToLoadMore !== collectionName) {
+            return [];
+          }
           return _lodash2.default.filter(_lodash2.default.map(collection, function (value) {
             if (_lodash2.default.size(_lodash2.default.intersection(value['__publicationNameWithParams'], _lodash2.default.keys(_this6.subs)))) {
               return value;

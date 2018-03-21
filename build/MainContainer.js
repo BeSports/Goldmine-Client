@@ -130,7 +130,7 @@ var MainContainer = function (_React$Component) {
         this.socket.close();
         this.socket = (0, _socket2.default)(nextProps.host, {
           transports: ['polling', 'websocket'],
-          query: props.auth ? props.auth : null
+          query: nextProps.auth ? nextProps.auth : null
         });
         this.startSocket();
       }
