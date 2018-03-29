@@ -45,7 +45,9 @@ export default (requests, Component) => {
             _.has(this, 'props.limit') &&
             this.getLoadersFromSubscriptions === 0
           ) {
-            this.props.onLoaded(_.sum(_.map(this.getDataObject, _.size)) >= this.props.limit);
+            this.props.onLoaded(
+              _.sum(_.map(this.getLimitedDataObject, _.size)) >= this.props.limit,
+            );
           }
         }
       };
@@ -53,7 +55,7 @@ export default (requests, Component) => {
       this.doAutoRun();
     }
 
-    get getDataObject() {
+    getLimitedDataObject() {
       return _.pickBy(
         _.mapValues(toJS(dataStore.collections), (collection, collectionName) => {
           if (
@@ -62,6 +64,25 @@ export default (requests, Component) => {
           ) {
             return [];
           }
+          return _.filter(
+            _.map(collection, value => {
+              if (_.size(_.intersection(value['__publicationNameWithParams'], _.keys(this.subs)))) {
+                return value;
+              }
+              return undefined;
+            }),
+            o => {
+              return !!o;
+            },
+          );
+        }),
+        _.size,
+      );
+    }
+
+    get getDataObject() {
+      return _.pickBy(
+        _.mapValues(toJS(dataStore.collections), (collection, collectionName) => {
           return _.filter(
             _.map(collection, value => {
               if (_.size(_.intersection(value['__publicationNameWithParams'], _.keys(this.subs)))) {

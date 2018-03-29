@@ -109,7 +109,7 @@ exports.default = function (requests, Component) {
             temp['data'] = _this2.getDataObject;
             _this2.setState(temp);
             if (_lodash2.default.has(_this2, 'props.onLoaded') && _lodash2.default.has(_this2, 'props.limit') && _this2.getLoadersFromSubscriptions === 0) {
-              _this2.props.onLoaded(_lodash2.default.sum(_lodash2.default.map(_this2.getDataObject, _lodash2.default.size)) >= _this2.props.limit);
+              _this2.props.onLoaded(_lodash2.default.sum(_lodash2.default.map(_this2.getLimitedDataObject, _lodash2.default.size)) >= _this2.props.limit);
             }
           }
         };
@@ -117,19 +117,38 @@ exports.default = function (requests, Component) {
         this.doAutoRun();
       }
     }, {
+      key: 'getLimitedDataObject',
+      value: function getLimitedDataObject() {
+        var _this3 = this;
+
+        return _lodash2.default.pickBy(_lodash2.default.mapValues((0, _mobx.toJS)(_DataStore2.default.collections), function (collection, collectionName) {
+          if (_lodash2.default.has(_this3.dataProps, 'collectionToLoadMore') && _this3.dataProps.collectionToLoadMore !== collectionName) {
+            return [];
+          }
+          return _lodash2.default.filter(_lodash2.default.map(collection, function (value) {
+            if (_lodash2.default.size(_lodash2.default.intersection(value['__publicationNameWithParams'], _lodash2.default.keys(_this3.subs)))) {
+              return value;
+            }
+            return undefined;
+          }), function (o) {
+            return !!o;
+          });
+        }), _lodash2.default.size);
+      }
+    }, {
       key: 'componentWillReceiveProps',
       value: function componentWillReceiveProps(nextProps) {
-        var _this3 = this;
+        var _this4 = this;
 
         if (JSON.stringify(nextProps) !== JSON.stringify(this.props)) {
           // Run changes in transaction.
           // When transaction is complete the necessary updates will take place.
           (0, _mobx.runInAction)(function () {
-            _this3.recentChecks = [];
-            _this3.dataProps = nextProps;
-            var temp = requests(_this3, _this3.dataProps);
-            _this3.setState(temp);
-            _this3.cancelSubscriptionsWithoutRecentCheck();
+            _this4.recentChecks = [];
+            _this4.dataProps = nextProps;
+            var temp = requests(_this4, _this4.dataProps);
+            _this4.setState(temp);
+            _this4.cancelSubscriptionsWithoutRecentCheck();
           });
         }
       }
@@ -144,12 +163,12 @@ exports.default = function (requests, Component) {
     }, {
       key: 'cancelSubscriptionsWithoutRecentCheck',
       value: function cancelSubscriptionsWithoutRecentCheck() {
-        var _this4 = this;
+        var _this5 = this;
 
         _lodash2.default.forEach(this.subs, function (isReactive, publicationNameWithParams) {
-          if (!_lodash2.default.includes(_this4.recentChecks, publicationNameWithParams)) {
+          if (!_lodash2.default.includes(_this5.recentChecks, publicationNameWithParams)) {
             _PubSubStore2.default.cancelSubscription(publicationNameWithParams);
-            delete _this4.subs[publicationNameWithParams];
+            delete _this5.subs[publicationNameWithParams];
           }
         });
         this.recentChecks = [];
@@ -221,11 +240,11 @@ exports.default = function (requests, Component) {
     }, {
       key: 'cancelSubscriptions',
       value: function cancelSubscriptions() {
-        var _this5 = this;
+        var _this6 = this;
 
         _lodash2.default.forEach(this.subs, function (isReactive, publicationNameWithParams) {
           _PubSubStore2.default.cancelSubscription(publicationNameWithParams);
-          delete _this5.subs[publicationNameWithParams];
+          delete _this6.subs[publicationNameWithParams];
         });
       }
 
@@ -266,14 +285,11 @@ exports.default = function (requests, Component) {
     }, {
       key: 'getDataObject',
       get: function get() {
-        var _this6 = this;
+        var _this7 = this;
 
         return _lodash2.default.pickBy(_lodash2.default.mapValues((0, _mobx.toJS)(_DataStore2.default.collections), function (collection, collectionName) {
-          if (_lodash2.default.has(_this6.dataProps, 'collectionToLoadMore') && _this6.dataProps.collectionToLoadMore !== collectionName) {
-            return [];
-          }
           return _lodash2.default.filter(_lodash2.default.map(collection, function (value) {
-            if (_lodash2.default.size(_lodash2.default.intersection(value['__publicationNameWithParams'], _lodash2.default.keys(_this6.subs)))) {
+            if (_lodash2.default.size(_lodash2.default.intersection(value['__publicationNameWithParams'], _lodash2.default.keys(_this7.subs)))) {
               return value;
             }
             return undefined;
@@ -285,10 +301,10 @@ exports.default = function (requests, Component) {
     }, {
       key: 'getLoadersFromSubscriptions',
       get: function get() {
-        var _this7 = this;
+        var _this8 = this;
 
         var subsForContainer = _lodash2.default.filter(_PubSubStore2.default.subs, function (s) {
-          return _lodash2.default.find(_lodash2.default.keys(_this7.subs), function (subName) {
+          return _lodash2.default.find(_lodash2.default.keys(_this8.subs), function (subName) {
             return subName === s.publicationNameWithParams;
           });
         });
