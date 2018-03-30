@@ -55,7 +55,7 @@ export default (requests, Component) => {
       this.doAutoRun();
     }
 
-    getLimitedDataObject() {
+    get getLimitedDataObject() {
       return _.pickBy(
         _.mapValues(toJS(dataStore.collections), (collection, collectionName) => {
           if (
@@ -82,7 +82,7 @@ export default (requests, Component) => {
 
     get getDataObject() {
       return _.pickBy(
-        _.mapValues(toJS(dataStore.collections), (collection, collectionName) => {
+        _.mapValues(toJS(dataStore.collections), collection => {
           return _.filter(
             _.map(collection, value => {
               if (_.size(_.intersection(value['__publicationNameWithParams'], _.keys(this.subs)))) {

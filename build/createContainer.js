@@ -117,38 +117,19 @@ exports.default = function (requests, Component) {
         this.doAutoRun();
       }
     }, {
-      key: 'getLimitedDataObject',
-      value: function getLimitedDataObject() {
-        var _this3 = this;
-
-        return _lodash2.default.pickBy(_lodash2.default.mapValues((0, _mobx.toJS)(_DataStore2.default.collections), function (collection, collectionName) {
-          if (_lodash2.default.has(_this3.dataProps, 'collectionToLoadMore') && _this3.dataProps.collectionToLoadMore !== collectionName) {
-            return [];
-          }
-          return _lodash2.default.filter(_lodash2.default.map(collection, function (value) {
-            if (_lodash2.default.size(_lodash2.default.intersection(value['__publicationNameWithParams'], _lodash2.default.keys(_this3.subs)))) {
-              return value;
-            }
-            return undefined;
-          }), function (o) {
-            return !!o;
-          });
-        }), _lodash2.default.size);
-      }
-    }, {
       key: 'componentWillReceiveProps',
       value: function componentWillReceiveProps(nextProps) {
-        var _this4 = this;
+        var _this3 = this;
 
         if (JSON.stringify(nextProps) !== JSON.stringify(this.props)) {
           // Run changes in transaction.
           // When transaction is complete the necessary updates will take place.
           (0, _mobx.runInAction)(function () {
-            _this4.recentChecks = [];
-            _this4.dataProps = nextProps;
-            var temp = requests(_this4, _this4.dataProps);
-            _this4.setState(temp);
-            _this4.cancelSubscriptionsWithoutRecentCheck();
+            _this3.recentChecks = [];
+            _this3.dataProps = nextProps;
+            var temp = requests(_this3, _this3.dataProps);
+            _this3.setState(temp);
+            _this3.cancelSubscriptionsWithoutRecentCheck();
           });
         }
       }
@@ -163,12 +144,12 @@ exports.default = function (requests, Component) {
     }, {
       key: 'cancelSubscriptionsWithoutRecentCheck',
       value: function cancelSubscriptionsWithoutRecentCheck() {
-        var _this5 = this;
+        var _this4 = this;
 
         _lodash2.default.forEach(this.subs, function (isReactive, publicationNameWithParams) {
-          if (!_lodash2.default.includes(_this5.recentChecks, publicationNameWithParams)) {
+          if (!_lodash2.default.includes(_this4.recentChecks, publicationNameWithParams)) {
             _PubSubStore2.default.cancelSubscription(publicationNameWithParams);
-            delete _this5.subs[publicationNameWithParams];
+            delete _this4.subs[publicationNameWithParams];
           }
         });
         this.recentChecks = [];
@@ -240,11 +221,11 @@ exports.default = function (requests, Component) {
     }, {
       key: 'cancelSubscriptions',
       value: function cancelSubscriptions() {
-        var _this6 = this;
+        var _this5 = this;
 
         _lodash2.default.forEach(this.subs, function (isReactive, publicationNameWithParams) {
           _PubSubStore2.default.cancelSubscription(publicationNameWithParams);
-          delete _this6.subs[publicationNameWithParams];
+          delete _this5.subs[publicationNameWithParams];
         });
       }
 
@@ -283,11 +264,30 @@ exports.default = function (requests, Component) {
         });
       }
     }, {
+      key: 'getLimitedDataObject',
+      get: function get() {
+        var _this6 = this;
+
+        return _lodash2.default.pickBy(_lodash2.default.mapValues((0, _mobx.toJS)(_DataStore2.default.collections), function (collection, collectionName) {
+          if (_lodash2.default.has(_this6.dataProps, 'collectionToLoadMore') && _this6.dataProps.collectionToLoadMore !== collectionName) {
+            return [];
+          }
+          return _lodash2.default.filter(_lodash2.default.map(collection, function (value) {
+            if (_lodash2.default.size(_lodash2.default.intersection(value['__publicationNameWithParams'], _lodash2.default.keys(_this6.subs)))) {
+              return value;
+            }
+            return undefined;
+          }), function (o) {
+            return !!o;
+          });
+        }), _lodash2.default.size);
+      }
+    }, {
       key: 'getDataObject',
       get: function get() {
         var _this7 = this;
 
-        return _lodash2.default.pickBy(_lodash2.default.mapValues((0, _mobx.toJS)(_DataStore2.default.collections), function (collection, collectionName) {
+        return _lodash2.default.pickBy(_lodash2.default.mapValues((0, _mobx.toJS)(_DataStore2.default.collections), function (collection) {
           return _lodash2.default.filter(_lodash2.default.map(collection, function (value) {
             if (_lodash2.default.size(_lodash2.default.intersection(value['__publicationNameWithParams'], _lodash2.default.keys(_this7.subs)))) {
               return value;
