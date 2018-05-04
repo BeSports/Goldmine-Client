@@ -12,17 +12,13 @@ var _GoldMine = require('./GoldMine');
 
 var _GoldMine2 = _interopRequireDefault(_GoldMine);
 
-var _propTypes = require('prop-types');
+var _hoistNonReactStatics = require('hoist-non-react-statics');
 
-var _propTypes2 = _interopRequireDefault(_propTypes);
+var _hoistNonReactStatics2 = _interopRequireDefault(_hoistNonReactStatics);
 
 var _react = require('react');
 
 var _react2 = _interopRequireDefault(_react);
-
-var _lodash = require('lodash');
-
-var _lodash2 = _interopRequireDefault(_lodash);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -33,24 +29,29 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 var withGoldmine = function withGoldmine(WrappedComponent, subscriptions) {
-  return function (_React$PureComponent) {
-    _inherits(_class, _React$PureComponent);
+  var WithGoldmine = function (_React$PureComponent) {
+    _inherits(WithGoldmine, _React$PureComponent);
 
-    function _class(props) {
-      _classCallCheck(this, _class);
+    function WithGoldmine() {
+      _classCallCheck(this, WithGoldmine);
 
-      return _possibleConstructorReturn(this, (_class.__proto__ || Object.getPrototypeOf(_class)).call(this, props));
+      return _possibleConstructorReturn(this, (WithGoldmine.__proto__ || Object.getPrototypeOf(WithGoldmine)).apply(this, arguments));
     }
 
-    _createClass(_class, [{
+    _createClass(WithGoldmine, [{
       key: 'render',
       value: function render() {
-        return _react2.default.createElement(_GoldMine2.default, _extends({ subscriptions: subscriptions(this.props || {}), component: WrappedComponent }, this.props));
+        return _react2.default.createElement(_GoldMine2.default, _extends({
+          subscriptions: subscriptions(this.props || {}),
+          component: WrappedComponent
+        }, this.props));
       }
     }]);
 
-    return _class;
+    return WithGoldmine;
   }(_react2.default.PureComponent);
+
+  return (0, _hoistNonReactStatics2.default)(WithGoldmine, WrappedComponent);
 };
 
 exports.default = withGoldmine;

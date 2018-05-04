@@ -1,6 +1,6 @@
 {
   "name": "goldmine-client",
-  "version": "0.12.11",
+  "version": "0.12.12",
   "description": "A framework for building reactive web apps.",
   "main": "build/index.js",
   "scripts": {
@@ -13,7 +13,12 @@
   "bugs": {
     "url": "https://github.com/BeSports/Goldmine-Client/issues"
   },
-  "keywords": ["goldmine", "reactive", "realtime", "client"],
+  "keywords": [
+    "goldmine",
+    "reactive",
+    "realtime",
+    "client"
+  ],
   "license": "LGPL-3.0",
   "contributors": [
     {
@@ -33,6 +38,7 @@
   ],
   "dependencies": {
     "deep-diff": "^0.3.8",
+    "hoist-non-react-statics": "^2.5.0",
     "lodash": "^4.17.4",
     "mobx": "^3.1.16",
     "mobx-react": "^4.2.1",

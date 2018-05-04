@@ -1,20 +1,21 @@
 import GoldMine from './GoldMine';
-import PropTypes from 'prop-types';
+import hoistNonReactStatics from 'hoist-non-react-statics';
 
 import React from 'react';
-import _ from 'lodash';
 
 const withGoldmine = (WrappedComponent, subscriptions) => {
-  return class extends React.PureComponent {
-    constructor(props) {
-      super(props);
-    }
+  class WithGoldmine extends React.PureComponent {
     render() {
       return (
-        <GoldMine subscriptions={subscriptions(this.props || {})} component={WrappedComponent} {...this.props} />
+        <GoldMine
+          subscriptions={subscriptions(this.props || {})}
+          component={WrappedComponent}
+          {...this.props}
+        />
       );
     }
-  };
+  }
+  return hoistNonReactStatics(WithGoldmine, WrappedComponent);
 };
 
 export default withGoldmine;
