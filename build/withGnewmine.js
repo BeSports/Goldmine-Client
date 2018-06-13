@@ -32,10 +32,6 @@ var _react = require('react');
 
 var _react2 = _interopRequireDefault(_react);
 
-var _extractPublicationName = require('../../gnewmine/src/helpers/extractPublicationName');
-
-var _extractPublicationName2 = _interopRequireDefault(_extractPublicationName);
-
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -68,18 +64,10 @@ var WithGnewmine = function (_React$Component) {
 
     var _this = _possibleConstructorReturn(this, (WithGnewmine.__proto__ || Object.getPrototypeOf(WithGnewmine)).call(this));
 
-    _this.toPusherName = function (subscriptionName) {
-      var publicationName = (0, _extractPublicationName2.default)(subscriptionName);
-      var key = subscriptionName.indexOf('?');
-      var params = subscriptionName.substring(key + 1);
-      var encodedParamsString = _base2.default.encode(params);
-      var pusherName = publicationName + '_' + encodedParamsString;
-      return pusherName;
-    };
-
     _this.applyUpdate = _this.applyUpdate.bind(_this);
     _this.buildParams = _this.buildParams.bind(_this);
     _this.toPusherName = _this.toPusherName.bind(_this);
+    _this.extractPublicationName = _this.extractPublicationName.bind(_this);
     _this.state = {
       loaded: false,
       data: {}
@@ -132,8 +120,27 @@ var WithGnewmine = function (_React$Component) {
       });
     }
   }, {
-    key: 'buildParams',
+    key: 'toPusherName',
+    value: function toPusherName(subscriptionName) {
+      var publicationName = this.extractPublicationName(subscriptionName);
+      var key = subscriptionName.indexOf('?');
+      var params = subscriptionName.substring(key + 1);
+      var encodedParamsString = _base2.default.encode(params);
+      var pusherName = publicationName + '_' + encodedParamsString;
+      return pusherName;
+    }
+  }, {
+    key: 'extractPublicationName',
+    value: function extractPublicationName(subscription) {
+      var key = subscription.indexOf('?');
+      var roomName = subscription;
 
+      if (key !== -1) {
+        roomName = subscription.substring(0, key);
+      }
+
+      return roomName;
+    }
 
     /**
      * Convert params object to string for subscription name.
@@ -141,6 +148,9 @@ var WithGnewmine = function (_React$Component) {
      * @param params
      * @returns {string}
      */
+
+  }, {
+    key: 'buildParams',
     value: function buildParams(params) {
       var buildParams = '';
       var x = 0;

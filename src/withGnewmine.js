@@ -5,7 +5,6 @@ import _ from 'lodash';
 import base64 from 'base-64';
 
 import React from 'react';
-import extractPublicationName from '../../gnewmine/src/helpers/extractPublicationName';
 
 const withGnewmine = (Component, subscriptions) => {
   return props => {
@@ -30,6 +29,7 @@ class WithGnewmine extends React.Component {
     this.applyUpdate = this.applyUpdate.bind(this);
     this.buildParams = this.buildParams.bind(this);
     this.toPusherName = this.toPusherName.bind(this);
+    this.extractPublicationName = this.extractPublicationName.bind(this);
     this.state = {
       loaded: false,
       data: {},
@@ -76,14 +76,25 @@ class WithGnewmine extends React.Component {
     });
   }
 
-  toPusherName = subscriptionName => {
-    const publicationName = extractPublicationName(subscriptionName);
+  toPusherName(subscriptionName) {
+    const publicationName = this.extractPublicationName(subscriptionName);
     const key = subscriptionName.indexOf('?');
     const params = subscriptionName.substring(key + 1);
     const encodedParamsString = base64.encode(params);
     const pusherName = `${publicationName}_${encodedParamsString}`;
     return pusherName;
-  };
+  }
+
+  extractPublicationName(subscription) {
+    const key = subscription.indexOf('?');
+    let roomName = subscription;
+
+    if (key !== -1) {
+      roomName = subscription.substring(0, key);
+    }
+
+    return roomName;
+  }
 
   /**
    * Convert params object to string for subscription name.
