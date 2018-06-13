@@ -104,6 +104,9 @@ var WithGnewmine = function (_React$Component) {
         mode: 'cors'
       };
       (0, _axios2.default)(options).then(function (response) {
+        if (process.env.NODE_ENV !== 'production') {
+          console.log('GNM init', subscriptionsToSend, response.data);
+        }
         _this2.setState({
           data: response.data,
           loaded: true
@@ -115,6 +118,9 @@ var WithGnewmine = function (_React$Component) {
       _lodash2.default.map(subscriptionsToSend, function (subscription) {
         var channel = socket.subscribe(_this2.toPusherName(subscription));
         channel.bind('update', function (data) {
+          if (process.env.NODE_ENV !== 'production') {
+            console.log('GNM update', subscriptionsToSend, data.diff);
+          }
           applyUpdate(data.diff);
         });
       });

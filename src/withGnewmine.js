@@ -60,6 +60,9 @@ class WithGnewmine extends React.Component {
       mode: 'cors',
     };
     axios(options).then(response => {
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('GNM init', subscriptionsToSend, response.data);
+      }
       this.setState({
         data: response.data,
         loaded: true,
@@ -71,6 +74,9 @@ class WithGnewmine extends React.Component {
     _.map(subscriptionsToSend, subscription => {
       const channel = socket.subscribe(this.toPusherName(subscription));
       channel.bind('update', data => {
+        if (process.env.NODE_ENV !== 'production') {
+          console.log('GNM update', subscriptionsToSend, data.diff);
+        }
         applyUpdate(data.diff);
       });
     });
