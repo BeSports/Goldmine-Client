@@ -1,8 +1,11 @@
 import GnewminePusher from './GnewminePusher';
 import axios from 'axios';
 import deepDifference from 'deep-diff';
+import _ from 'lodash';
+import base64 from 'base-64';
 
 import React from 'react';
+import extractPublicationName from '../../gnewmine/src/helpers/extractPublicationName';
 
 const withGnewmine = (Component, subscriptions) => {
   return props => {
@@ -25,6 +28,8 @@ class WithGnewmine extends React.Component {
   constructor() {
     super();
     this.applyUpdate = this.applyUpdate.bind(this);
+    this.buildParams = this.buildParams.bind(this);
+    this.toPusherName = this.toPusherName.bind(this);
     this.state = {
       loaded: false,
       data: {},
@@ -33,8 +38,28 @@ class WithGnewmine extends React.Component {
 
   componentWillMount() {
     const { socket } = this.props;
+    const subscriptionsFunction = this.props.subscriptions;
+    const headers = {};
+    const jwt = localStorage.getItem('jwt');
+    if (jwt) {
+      headers['x-access-token'] = jwt;
+    }
 
-    axios.post(process.env.GNEWMINE_SERVER, { publication: 'storyForId' }).then(response => {
+    const subscriptions = subscriptionsFunction(this.props);
+    const subscriptionsToSend = _.map(subscriptions, subscription => {
+      return `${subscription.publication}?${this.buildParams(subscription.props)}`;
+    });
+
+    const options = {
+      url: process.env.GNEWMINE_SERVER,
+      headers,
+      method: 'POST',
+      data: {
+        subscriptions: subscriptionsToSend,
+      },
+      mode: 'cors',
+    };
+    axios(options).then(response => {
       this.setState({
         data: response.data,
         loaded: true,
@@ -43,10 +68,47 @@ class WithGnewmine extends React.Component {
 
     const applyUpdate = this.applyUpdate;
 
-    const channel = socket.subscribe('storyForId');
-    channel.bind('anEvent', data => {
-      applyUpdate(data.diff);
+    _.map(subscriptionsToSend, subscription => {
+      const channel = socket.subscribe(this.toPusherName(subscription));
+      channel.bind('update', data => {
+        applyUpdate(data.diff);
+      });
     });
+  }
+
+  toPusherName = subscriptionName => {
+    const publicationName = extractPublicationName(subscriptionName);
+    const key = subscriptionName.indexOf('?');
+    const params = subscriptionName.substring(key + 1);
+    const encodedParamsString = base64.encode(params);
+    const pusherName = `${publicationName}_${encodedParamsString}`;
+    return pusherName;
+  };
+
+  /**
+   * Convert params object to string for subscription name.
+   *
+   * @param params
+   * @returns {string}
+   */
+  buildParams(params) {
+    let buildParams = '';
+    let x = 0;
+
+    const size = Object.keys(params).length - 1;
+
+    _.forEach(params, (value, key) => {
+      const tempValue = JSON.stringify(value);
+      buildParams += `${key}=${tempValue}`;
+
+      if (x < size) {
+        buildParams += '&';
+      }
+
+      x++;
+    });
+
+    return buildParams;
   }
 
   applyUpdate(differences) {

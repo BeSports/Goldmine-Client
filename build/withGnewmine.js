@@ -20,9 +20,21 @@ var _deepDiff = require('deep-diff');
 
 var _deepDiff2 = _interopRequireDefault(_deepDiff);
 
+var _lodash = require('lodash');
+
+var _lodash2 = _interopRequireDefault(_lodash);
+
+var _base = require('base-64');
+
+var _base2 = _interopRequireDefault(_base);
+
 var _react = require('react');
 
 var _react2 = _interopRequireDefault(_react);
+
+var _extractPublicationName = require('../../gnewmine/src/helpers/extractPublicationName');
+
+var _extractPublicationName2 = _interopRequireDefault(_extractPublicationName);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -56,7 +68,18 @@ var WithGnewmine = function (_React$Component) {
 
     var _this = _possibleConstructorReturn(this, (WithGnewmine.__proto__ || Object.getPrototypeOf(WithGnewmine)).call(this));
 
+    _this.toPusherName = function (subscriptionName) {
+      var publicationName = (0, _extractPublicationName2.default)(subscriptionName);
+      var key = subscriptionName.indexOf('?');
+      var params = subscriptionName.substring(key + 1);
+      var encodedParamsString = _base2.default.encode(params);
+      var pusherName = publicationName + '_' + encodedParamsString;
+      return pusherName;
+    };
+
     _this.applyUpdate = _this.applyUpdate.bind(_this);
+    _this.buildParams = _this.buildParams.bind(_this);
+    _this.toPusherName = _this.toPusherName.bind(_this);
     _this.state = {
       loaded: false,
       data: {}
@@ -71,8 +94,28 @@ var WithGnewmine = function (_React$Component) {
 
       var socket = this.props.socket;
 
+      var subscriptionsFunction = this.props.subscriptions;
+      var headers = {};
+      var jwt = localStorage.getItem('jwt');
+      if (jwt) {
+        headers['x-access-token'] = jwt;
+      }
 
-      _axios2.default.post(process.env.GNEWMINE_SERVER, { publication: 'storyForId' }).then(function (response) {
+      var subscriptions = subscriptionsFunction(this.props);
+      var subscriptionsToSend = _lodash2.default.map(subscriptions, function (subscription) {
+        return subscription.publication + '?' + _this2.buildParams(subscription.props);
+      });
+
+      var options = {
+        url: process.env.GNEWMINE_SERVER,
+        headers: headers,
+        method: 'POST',
+        data: {
+          subscriptions: subscriptionsToSend
+        },
+        mode: 'cors'
+      };
+      (0, _axios2.default)(options).then(function (response) {
         _this2.setState({
           data: response.data,
           loaded: true
@@ -81,16 +124,47 @@ var WithGnewmine = function (_React$Component) {
 
       var applyUpdate = this.applyUpdate;
 
-      var channel = socket.subscribe('storyForId');
-      channel.bind('anEvent', function (data) {
-        applyUpdate(data.diff);
+      _lodash2.default.map(subscriptionsToSend, function (subscription) {
+        var channel = socket.subscribe(_this2.toPusherName(subscription));
+        channel.bind('update', function (data) {
+          applyUpdate(data.diff);
+        });
       });
+    }
+  }, {
+    key: 'buildParams',
+
+
+    /**
+     * Convert params object to string for subscription name.
+     *
+     * @param params
+     * @returns {string}
+     */
+    value: function buildParams(params) {
+      var buildParams = '';
+      var x = 0;
+
+      var size = Object.keys(params).length - 1;
+
+      _lodash2.default.forEach(params, function (value, key) {
+        var tempValue = JSON.stringify(value);
+        buildParams += key + '=' + tempValue;
+
+        if (x < size) {
+          buildParams += '&';
+        }
+
+        x++;
+      });
+
+      return buildParams;
     }
   }, {
     key: 'applyUpdate',
     value: function applyUpdate(differences) {
-      var newData = _.cloneDeep(this.state.data);
-      _.each(differences, function (singleDiff) {
+      var newData = _lodash2.default.cloneDeep(this.state.data);
+      _lodash2.default.each(differences, function (singleDiff) {
         _deepDiff2.default.applyChange(newData, {}, singleDiff);
       });
       this.setState({
@@ -114,7 +188,7 @@ var WithGnewmine = function (_React$Component) {
           loaded = _state.loaded;
 
 
-      return _react2.default.createElement(Component, { data: data, loaded: loaded });
+      return _react2.default.createElement(Component, _extends({ data: data, loaded: loaded }, this.props));
     }
   }]);
 
