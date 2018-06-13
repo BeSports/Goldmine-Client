@@ -38,6 +38,7 @@
   ],
   "dependencies": {
     "deep-diff": "^0.3.8",
+    "axios": "^0.18.0",
     "hoist-non-react-statics": "^2.5.0",
     "lodash": "^4.17.4",
     "mobx": "^3.1.16",
@@ -57,7 +58,7 @@
     "eslint": "^4.0.0",
     "eslint-plugin-import": "^2.3.0",
     "eslint-plugin-jsx-a11y": "^5.0.3",
-    "react": "^16.0.0",
-    "react-dom": "^16.0.0"
+    "react": "^16.4.0",
+    "react-dom": "^16.4.0"
   }
 }
