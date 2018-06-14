@@ -28,6 +28,7 @@ class WithGnewmine extends React.Component {
     super();
     this.applyUpdate = this.applyUpdate.bind(this);
     this.buildParams = this.buildParams.bind(this);
+    this.getSubscriptionsToSend = this.getSubscriptionsToSend.bind(this);
     this.toPusherName = this.toPusherName.bind(this);
     this.extractPublicationName = this.extractPublicationName.bind(this);
     this.state = {
@@ -38,17 +39,13 @@ class WithGnewmine extends React.Component {
 
   componentWillMount() {
     const { socket } = this.props;
-    const subscriptionsFunction = this.props.subscriptions;
     const headers = {};
     const jwt = localStorage.getItem('jwt');
     if (jwt) {
       headers['x-access-token'] = jwt;
     }
 
-    const subscriptions = subscriptionsFunction(this.props);
-    const subscriptionsToSend = _.map(subscriptions, subscription => {
-      return `${subscription.publication}?${this.buildParams(subscription.props)}`;
-    });
+    const subscriptionsToSend = this.getSubscriptionsToSend();
 
     const options = {
       url: process.env.GNEWMINE_SERVER,
@@ -80,6 +77,17 @@ class WithGnewmine extends React.Component {
         applyUpdate(data.diff);
       });
     });
+  }
+
+  getSubscriptionsToSend() {
+    const subscriptionsFunction = this.props.subscriptions;
+
+    const subscriptions = subscriptionsFunction(this.props);
+    const subscriptionsToSend = _.map(subscriptions, subscription => {
+      return `${subscription.publication}?${this.buildParams(subscription.props)}`;
+    });
+
+    return subscriptionsToSend;
   }
 
   toPusherName(subscriptionName) {
@@ -141,7 +149,9 @@ class WithGnewmine extends React.Component {
   componentWillUnmount() {
     const { socket } = this.props;
 
-    socket.unsubscribe('storyForId');
+    _.map(this.getSubscriptionsToSend(), subscription => {
+      socket.unsubscribe(this.toPusherName(subscription));
+    });
   }
 
   render() {

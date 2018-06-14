@@ -66,6 +66,7 @@ var WithGnewmine = function (_React$Component) {
 
     _this.applyUpdate = _this.applyUpdate.bind(_this);
     _this.buildParams = _this.buildParams.bind(_this);
+    _this.getSubscriptionsToSend = _this.getSubscriptionsToSend.bind(_this);
     _this.toPusherName = _this.toPusherName.bind(_this);
     _this.extractPublicationName = _this.extractPublicationName.bind(_this);
     _this.state = {
@@ -82,17 +83,13 @@ var WithGnewmine = function (_React$Component) {
 
       var socket = this.props.socket;
 
-      var subscriptionsFunction = this.props.subscriptions;
       var headers = {};
       var jwt = localStorage.getItem('jwt');
       if (jwt) {
         headers['x-access-token'] = jwt;
       }
 
-      var subscriptions = subscriptionsFunction(this.props);
-      var subscriptionsToSend = _lodash2.default.map(subscriptions, function (subscription) {
-        return subscription.publication + '?' + _this2.buildParams(subscription.props);
-      });
+      var subscriptionsToSend = this.getSubscriptionsToSend();
 
       var options = {
         url: process.env.GNEWMINE_SERVER,
@@ -124,6 +121,20 @@ var WithGnewmine = function (_React$Component) {
           applyUpdate(data.diff);
         });
       });
+    }
+  }, {
+    key: 'getSubscriptionsToSend',
+    value: function getSubscriptionsToSend() {
+      var _this3 = this;
+
+      var subscriptionsFunction = this.props.subscriptions;
+
+      var subscriptions = subscriptionsFunction(this.props);
+      var subscriptionsToSend = _lodash2.default.map(subscriptions, function (subscription) {
+        return subscription.publication + '?' + _this3.buildParams(subscription.props);
+      });
+
+      return subscriptionsToSend;
     }
   }, {
     key: 'toPusherName',
@@ -190,10 +201,14 @@ var WithGnewmine = function (_React$Component) {
   }, {
     key: 'componentWillUnmount',
     value: function componentWillUnmount() {
+      var _this4 = this;
+
       var socket = this.props.socket;
 
 
-      socket.unsubscribe('storyForId');
+      _lodash2.default.map(this.getSubscriptionsToSend(), function (subscription) {
+        socket.unsubscribe(_this4.toPusherName(subscription));
+      });
     }
   }, {
     key: 'render',
