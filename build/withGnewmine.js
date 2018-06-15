@@ -69,6 +69,8 @@ var WithGnewmine = function (_React$Component) {
     _this.getSubscriptionsToSend = _this.getSubscriptionsToSend.bind(_this);
     _this.toPusherName = _this.toPusherName.bind(_this);
     _this.extractPublicationName = _this.extractPublicationName.bind(_this);
+    _this.doGnewMine = _this.doGnewMine.bind(_this);
+
     _this.state = {
       loaded: false,
       data: {}
@@ -77,11 +79,21 @@ var WithGnewmine = function (_React$Component) {
   }
 
   _createClass(WithGnewmine, [{
-    key: 'componentWillMount',
-    value: function componentWillMount() {
+    key: 'componentWillReceiveProps',
+    value: function componentWillReceiveProps(nextProps) {
+      this.doGnewMine(nextProps, this.props);
+    }
+  }, {
+    key: 'doGnewMine',
+    value: function doGnewMine(props, prevProps) {
       var _this2 = this;
 
-      var socket = this.props.socket;
+      var toOmit = ['Component', 'socket', 'match', 'location', 'history'];
+      if (prevProps && JSON.stringify(_lodash2.default.omit(props, toOmit)) === JSON.stringify(_lodash2.default.omit(prevProps, toOmit))) {
+        return;
+      }
+
+      var socket = props.socket;
 
       var headers = {};
       var jwt = localStorage.getItem('jwt');
@@ -89,7 +101,11 @@ var WithGnewmine = function (_React$Component) {
         headers['x-access-token'] = jwt;
       }
 
-      var subscriptionsToSend = this.getSubscriptionsToSend();
+      var subscriptionsToSend = this.getSubscriptionsToSend(props);
+
+      if (_lodash2.default.size(subscriptionsToSend) === 0) {
+        return;
+      }
 
       var options = {
         url: process.env.GNEWMINE_SERVER,
@@ -123,13 +139,18 @@ var WithGnewmine = function (_React$Component) {
       });
     }
   }, {
+    key: 'componentWillMount',
+    value: function componentWillMount() {
+      this.doGnewMine(this.props);
+    }
+  }, {
     key: 'getSubscriptionsToSend',
-    value: function getSubscriptionsToSend() {
+    value: function getSubscriptionsToSend(props) {
       var _this3 = this;
 
-      var subscriptionsFunction = this.props.subscriptions;
+      var subscriptionsFunction = props.subscriptions;
 
-      var subscriptions = subscriptionsFunction(this.props);
+      var subscriptions = subscriptionsFunction(props);
       var subscriptionsToSend = _lodash2.default.map(subscriptions, function (subscription) {
         return subscription.publication + '?' + _this3.buildParams(subscription.props);
       });
@@ -206,7 +227,7 @@ var WithGnewmine = function (_React$Component) {
       var socket = this.props.socket;
 
 
-      _lodash2.default.map(this.getSubscriptionsToSend(), function (subscription) {
+      _lodash2.default.map(this.getSubscriptionsToSend(this.props), function (subscription) {
         socket.unsubscribe(_this4.toPusherName(subscription));
       });
     }
@@ -217,7 +238,6 @@ var WithGnewmine = function (_React$Component) {
       var _state = this.state,
           data = _state.data,
           loaded = _state.loaded;
-
 
       return _react2.default.createElement(Component, _extends({ data: data, loaded: loaded }, this.props));
     }

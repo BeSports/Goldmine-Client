@@ -10,14 +10,16 @@ const withGnewmine = (Component, subscriptions) => {
   return props => {
     return (
       <GnewminePusher.Consumer>
-        {socket => (
-          <WithGnewmine
-            {...props}
-            socket={socket}
-            Component={Component}
-            subscriptions={subscriptions}
-          />
-        )}
+        {socket => {
+          return (
+            <WithGnewmine
+              {...props}
+              socket={socket}
+              Component={Component}
+              subscriptions={subscriptions}
+            />
+          );
+        }}
       </GnewminePusher.Consumer>
     );
   };
@@ -31,21 +33,39 @@ class WithGnewmine extends React.Component {
     this.getSubscriptionsToSend = this.getSubscriptionsToSend.bind(this);
     this.toPusherName = this.toPusherName.bind(this);
     this.extractPublicationName = this.extractPublicationName.bind(this);
+    this.doGnewMine = this.doGnewMine.bind(this);
+
     this.state = {
       loaded: false,
       data: {},
     };
   }
 
-  componentWillMount() {
-    const { socket } = this.props;
+  componentWillReceiveProps(nextProps) {
+    this.doGnewMine(nextProps, this.props);
+  }
+
+  doGnewMine(props, prevProps) {
+    const toOmit = ['Component', 'socket', 'match', 'location', 'history'];
+    if (
+      prevProps &&
+      JSON.stringify(_.omit(props, toOmit)) === JSON.stringify(_.omit(prevProps, toOmit))
+    ) {
+      return;
+    }
+
+    const { socket } = props;
     const headers = {};
     const jwt = localStorage.getItem('jwt');
     if (jwt) {
       headers['x-access-token'] = jwt;
     }
 
-    const subscriptionsToSend = this.getSubscriptionsToSend();
+    const subscriptionsToSend = this.getSubscriptionsToSend(props);
+
+    if (_.size(subscriptionsToSend) === 0) {
+      return;
+    }
 
     const options = {
       url: process.env.GNEWMINE_SERVER,
@@ -79,10 +99,14 @@ class WithGnewmine extends React.Component {
     });
   }
 
-  getSubscriptionsToSend() {
-    const subscriptionsFunction = this.props.subscriptions;
+  componentWillMount() {
+    this.doGnewMine(this.props);
+  }
 
-    const subscriptions = subscriptionsFunction(this.props);
+  getSubscriptionsToSend(props) {
+    const subscriptionsFunction = props.subscriptions;
+
+    const subscriptions = subscriptionsFunction(props);
     const subscriptionsToSend = _.map(subscriptions, subscription => {
       return `${subscription.publication}?${this.buildParams(subscription.props)}`;
     });
@@ -149,7 +173,7 @@ class WithGnewmine extends React.Component {
   componentWillUnmount() {
     const { socket } = this.props;
 
-    _.map(this.getSubscriptionsToSend(), subscription => {
+    _.map(this.getSubscriptionsToSend(this.props), subscription => {
       socket.unsubscribe(this.toPusherName(subscription));
     });
   }
@@ -157,7 +181,6 @@ class WithGnewmine extends React.Component {
   render() {
     const { Component } = this.props;
     const { data, loaded } = this.state;
-
     return <Component data={data} loaded={loaded} {...this.props} />;
   }
 }
