@@ -32,10 +32,6 @@ var _react = require('react');
 
 var _react2 = _interopRequireDefault(_react);
 
-var _UserStore = require('../../frontend/src/stores/UserStore');
-
-var _UserStore2 = _interopRequireDefault(_UserStore);
-
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -103,10 +99,8 @@ var WithGnewmine = function (_React$Component) {
       var jwt = localStorage.getItem('jwt');
       if (jwt) {
         headers['x-access-token'] = jwt;
-        if (_UserStore2.default.impersonatedJwt) {
-          headers['x-impersonate-jwt'] = _UserStore2.default.impersonatedJwt;
-        } else if (_UserStore2.default.impersonatedUsername) {
-          headers['x-impersonate-name'] = _UserStore2.default.impersonatedUsername;
+        if (sessionStorage.getItem('impersonatedJwt')) {
+          headers['x-impersonate-jwt'] = sessionStorage.getItem('impersonatedJwt');
         }
       }
 
