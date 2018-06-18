@@ -5,6 +5,7 @@ import _ from 'lodash';
 import base64 from 'base-64';
 
 import React from 'react';
+import UserStore from '../../frontend/src/stores/UserStore';
 
 const withGnewmine = (Component, subscriptions) => {
   return props => {
@@ -59,6 +60,11 @@ class WithGnewmine extends React.Component {
     const jwt = localStorage.getItem('jwt');
     if (jwt) {
       headers['x-access-token'] = jwt;
+      if (UserStore.impersonatedJwt) {
+        headers['x-impersonate-jwt'] = UserStore.impersonatedJwt;
+      } else if (UserStore.impersonatedUsername) {
+        headers['x-impersonate-name'] = UserStore.impersonatedUsername;
+      }
     }
 
     const subscriptionsToSend = this.getSubscriptionsToSend(props);
