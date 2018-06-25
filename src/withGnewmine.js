@@ -1,27 +1,17 @@
-import GnewminePusher from './GnewminePusher';
 import axios from 'axios';
 import deepDifference from 'deep-diff';
 import _ from 'lodash';
 import base64 from 'base-64';
+import GnewmineStore from './stores/GnewmineStore';
 
 import React from 'react';
+import { runInAction, action } from 'mobx';
+import { toJS } from 'mobx/lib/mobx';
+import dataStore from './stores/DataStore';
 
 const withGnewmine = (Component, subscriptions) => {
   return props => {
-    return (
-      <GnewminePusher.Consumer>
-        {socket => {
-          return (
-            <WithGnewmine
-              {...props}
-              socket={socket}
-              Component={Component}
-              subscriptions={subscriptions}
-            />
-          );
-        }}
-      </GnewminePusher.Consumer>
-    );
+    return <WithGnewmine {...props} Component={Component} subscriptions={subscriptions} />;
   };
 };
 
@@ -34,76 +24,78 @@ class WithGnewmine extends React.Component {
     this.toPusherName = this.toPusherName.bind(this);
     this.extractPublicationName = this.extractPublicationName.bind(this);
     this.doGnewMine = this.doGnewMine.bind(this);
+    this.checkSubscriptions = this.checkSubscriptions.bind(this);
+    this.cancelSubscriptionsWithoutRecentCheck = this.cancelSubscriptionsWithoutRecentCheck.bind(
+      this,
+    );
 
     this.state = {
       loaded: false,
       data: {},
     };
+    this.subs = [];
   }
 
   componentWillReceiveProps(nextProps) {
     this.doGnewMine(nextProps, this.props);
   }
 
-  doGnewMine(props, prevProps) {
-    const toOmit = ['Component', 'socket', 'match', 'location', 'history'];
-    if (
-      prevProps &&
-      JSON.stringify(_.omit(props, toOmit)) === JSON.stringify(_.omit(prevProps, toOmit))
-    ) {
-      return;
-    }
-
-    const { socket } = props;
-    const headers = {};
-    const jwt = localStorage.getItem('jwt');
-    if (jwt) {
-      headers['x-access-token'] = jwt;
-      if (sessionStorage.getItem('impersonatedJwt')) {
-        headers['x-impersonate-jwt'] = sessionStorage.getItem('impersonatedJwt');
-      }
-    }
-
-    const subscriptionsToSend = this.getSubscriptionsToSend(props);
-
-    if (_.size(subscriptionsToSend) === 0) {
-      return;
-    }
-
-    const options = {
-      url: process.env.GNEWMINE_SERVER,
-      headers,
-      method: 'POST',
-      data: {
-        subscriptions: subscriptionsToSend,
-      },
-      mode: 'cors',
+  componentWillMount() {
+    GnewmineStore.registerWithGnewmine(this);
+    this.doAutoRun = () => {
+      this.doGnewMine(this.props, {});
     };
-    axios(options).then(response => {
-      if (process.env.NODE_ENV !== 'production') {
-        console.log('GNM init', subscriptionsToSend, response.data);
-      }
-      this.setState({
-        data: response.data,
-        loaded: true,
-      });
-    });
+    this.doAutoRun();
+  }
 
-    const applyUpdate = this.applyUpdate;
+  componentWillUnmount() {
+    this.cancelSubscriptionsWithoutRecentCheck();
+    GnewmineStore.cancelWithGnewmine(this);
+  }
 
-    _.map(subscriptionsToSend, subscription => {
-      const channel = socket.subscribe(this.toPusherName(subscription));
-      channel.bind('update', data => {
-        if (process.env.NODE_ENV !== 'production') {
-          console.log('GNM update', subscriptionsToSend, data.diff);
+  doGnewMine(nextProps, prevProps) {
+    if (JSON.stringify(nextProps) !== JSON.stringify(prevProps)) {
+      // Run changes in transaction.
+      // When transaction is complete the necessary updates will take place.
+      runInAction(() => {
+        this.recentChecks = [];
+        this.nextProps = nextProps;
+        const subscriptionsToSend = this.getSubscriptionsToSend(nextProps);
+        if (this.subs !== subscriptionsToSend) {
+          this.checkSubscriptions(subscriptionsToSend);
+          this.cancelSubscriptionsWithoutRecentCheck();
         }
-        applyUpdate(data.diff);
+        this.setState({
+          data: this.getDataObject,
+          loaded: this.getLoaded,
+        });
       });
+    }
+  }
+
+  // checks all subscriptions for new subscrtiptions
+  @action
+  checkSubscriptions(subscriptionsToSend) {
+    _.forEach(subscriptionsToSend, publicationNameWithParams => {
+      this.recentChecks = _.concat(this.recentChecks, publicationNameWithParams);
+      if (_.includes(this.subs, publicationNameWithParams)) {
+        // was already subscribed
+        return;
+      }
+      GnewmineStore.subscribe(publicationNameWithParams);
+      this.subs.push(publicationNameWithParams);
     });
   }
 
-  componentWillMount() {
-    this.doGnewMine(this.props);
+  // removes all subscriptions which were not needed anymore
+  cancelSubscriptionsWithoutRecentCheck() {
+    _.forEach(this.subs, publicationNameWithParams => {
+      if (!_.includes(this.recentChecks, publicationNameWithParams)) {
+        GnewmineStore.cancelSubscription(publicationNameWithParams);
+        delete this.subs[_.indexOf(this.subs, publicationNameWithParams)];
+      }
+    });
+    this.recentChecks = [];
   }
 
   getSubscriptionsToSend(props) {
@@ -173,12 +165,27 @@ class WithGnewmine extends React.Component {
     });
   }
 
-  componentWillUnmount() {
-    const { socket } = this.props;
+  get getDataObject() {
+    return _.reduce(
+      _.filter(GnewmineStore.subscriptions, publication => {
+        return _.includes(this.subs, publication.publicationNameWithParams);
+      }),
+      (data, dataPart) => {
+        return _.merge(data, toJS(dataPart.data));
+      },
+      {},
+    );
+  }
 
-    _.map(this.getSubscriptionsToSend(this.props), subscription => {
-      socket.unsubscribe(this.toPusherName(subscription));
-    });
+  get getLoaded() {
+    return _.every(
+      _.filter(GnewmineStore.subscriptions, publication => {
+        return _.includes(this.subs, publication.publicationNameWithParams);
+      }),
+      o => {
+        return o.loaded === true;
+      },
+    );
   }
 
   render() {

@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.GnewminePusher = exports.withGnewmine = exports.withGoldmine = exports.GoldMine = exports.createContainer = exports.MainContainer = undefined;
+exports.GnewmineContainer = exports.withGnewmine = exports.withGoldmine = exports.GoldMine = exports.createContainer = exports.MainContainer = undefined;
 
 var _MainContainer = require('./MainContainer');
 
@@ -25,9 +25,9 @@ var _withGnewmine = require('./withGnewmine');
 
 var _withGnewmine2 = _interopRequireDefault(_withGnewmine);
 
-var _GnewminePusher = require('./GnewminePusher');
+var _GnewmineContainer = require('./GnewmineContainer');
 
-var _GnewminePusher2 = _interopRequireDefault(_GnewminePusher);
+var _GnewmineContainer2 = _interopRequireDefault(_GnewmineContainer);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -36,4 +36,4 @@ exports.createContainer = _createContainer2.default;
 exports.GoldMine = _GoldMine2.default;
 exports.withGoldmine = _withGoldmine2.default;
 exports.withGnewmine = _withGnewmine2.default;
-exports.GnewminePusher = _GnewminePusher2.default;
+exports.GnewmineContainer = _GnewmineContainer2.default;
