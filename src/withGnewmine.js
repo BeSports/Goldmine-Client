@@ -1,4 +1,3 @@
-import axios from 'axios';
 import deepDifference from 'deep-diff';
 import _ from 'lodash';
 import base64 from 'base-64';
@@ -7,11 +6,12 @@ import GnewmineStore from './stores/GnewmineStore';
 import React from 'react';
 import { runInAction, action } from 'mobx';
 import { toJS } from 'mobx/lib/mobx';
-import dataStore from './stores/DataStore';
 
 const withGnewmine = (Component, subscriptions) => {
   return props => {
-    return <WithGnewmine {...props} Component={Component} subscriptions={subscriptions} />;
+    return (
+      <WithGnewmine gm={true} Component={Component} subscriptions={subscriptions} {...props} />
+    );
   };
 };
 
@@ -100,10 +100,14 @@ class WithGnewmine extends React.Component {
 
   getSubscriptionsToSend(props) {
     const subscriptionsFunction = props.subscriptions;
-
     const subscriptions = subscriptionsFunction(props);
     const subscriptionsToSend = _.map(subscriptions, subscription => {
-      return `${subscription.publication}?${this.buildParams(subscription.props)}`;
+      return `${subscription.publication}?${this.buildParams(
+        _.merge(
+          subscription.private === true ? { userId: GnewmineStore.userId } : {},
+          subscription.props,
+        ),
+      )}`;
     });
 
     return subscriptionsToSend;

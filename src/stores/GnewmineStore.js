@@ -8,6 +8,7 @@ class GnewmineStore {
   @observable subscriptions = [];
   @observable socket = null;
   @observable headers = null;
+  @observable userId = null;
   @observable containers = [];
 
   constructor() {
@@ -108,7 +109,18 @@ class GnewmineStore {
 
   @action
   setHeaders(headers) {
-    this.headers = headers;
+    if (headers !== this.headers) {
+      this.headers = headers;
+      this.triggerAll(this.containers);
+    }
+  }
+
+  @action
+  setUserId(userId) {
+    if (userId !== this.userId) {
+      this.userId = userId;
+      this.triggerAll(this.containers);
+    }
   }
 
   @action
@@ -135,6 +147,12 @@ class GnewmineStore {
       ) {
         container.doAutoRun();
       }
+    });
+  }
+
+  triggerAll(containers) {
+    _.forEach(toJS(containers), container => {
+      container.doAutoRun();
     });
   }
 

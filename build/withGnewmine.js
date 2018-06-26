@@ -10,10 +10,6 @@ var _desc, _value, _class;
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
-var _axios = require('axios');
-
-var _axios2 = _interopRequireDefault(_axios);
-
 var _deepDiff = require('deep-diff');
 
 var _deepDiff2 = _interopRequireDefault(_deepDiff);
@@ -37,10 +33,6 @@ var _react2 = _interopRequireDefault(_react);
 var _mobx = require('mobx');
 
 var _mobx2 = require('mobx/lib/mobx');
-
-var _DataStore = require('./stores/DataStore');
-
-var _DataStore2 = _interopRequireDefault(_DataStore);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -81,7 +73,7 @@ function _applyDecoratedDescriptor(target, property, decorators, descriptor, con
 
 var withGnewmine = function withGnewmine(Component, subscriptions) {
   return function (props) {
-    return _react2.default.createElement(WithGnewmine, _extends({}, props, { Component: Component, subscriptions: subscriptions }));
+    return _react2.default.createElement(WithGnewmine, _extends({ gm: true, Component: Component, subscriptions: subscriptions }, props));
   };
 };
 
@@ -195,10 +187,9 @@ var WithGnewmine = (_class = function (_React$Component) {
       var _this6 = this;
 
       var subscriptionsFunction = props.subscriptions;
-
       var subscriptions = subscriptionsFunction(props);
       var subscriptionsToSend = _lodash2.default.map(subscriptions, function (subscription) {
-        return subscription.publication + '?' + _this6.buildParams(subscription.props);
+        return subscription.publication + '?' + _this6.buildParams(_lodash2.default.merge(subscription.private === true ? { userId: _GnewmineStore2.default.userId } : {}, subscription.props));
       });
 
       return subscriptionsToSend;
