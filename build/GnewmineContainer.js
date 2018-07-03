@@ -53,7 +53,7 @@ var GnewmineContainer = function (_React$Component) {
   }, {
     key: 'render',
     value: function render() {
-      return this.props.children;
+      return this.props.children || null;
     }
   }]);
 
