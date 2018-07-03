@@ -6,13 +6,23 @@ import GnewmineStore from './stores/GnewmineStore';
 import React from 'react';
 import { runInAction, action } from 'mobx';
 import { toJS } from 'mobx/lib/mobx';
+import hoistNonReactStatics from 'hoist-non-react-statics';
 
 const withGnewmine = (Component, subscriptions) => {
-  return props => {
-    return (
-      <WithGnewmine gm={true} Component={Component} subscriptions={subscriptions} {...props} />
-    );
-  };
+  class WithGnewmineInside extends React.Component {
+    render() {
+      return (
+        <WithGnewmine
+          gm={true}
+          Component={Component}
+          subscriptions={subscriptions}
+          {...this.props}
+        />
+      );
+    }
+  }
+
+  return hoistNonReactStatics(WithGnewmineInside, Component);
 };
 
 class WithGnewmine extends React.Component {
