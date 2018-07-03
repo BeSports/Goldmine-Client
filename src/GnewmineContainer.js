@@ -8,12 +8,14 @@ export default class GnewmineContainer extends React.Component {
     GnewmineStore.setSocket(this.props.socket);
     GnewmineStore.setHeaders(this.props.headers);
     GnewmineStore.setUserId(this.props.userId);
+    GnewmineStore.setHost(this.props.host);
   }
 
   componentWillReceiveProps(nextProps) {
     GnewmineStore.setSocket(nextProps.socket);
     GnewmineStore.setHeaders(nextProps.headers);
     GnewmineStore.setUserId(nextProps.userId);
+    GnewmineStore.setHost(nextProps.host);
   }
 
   render() {
@@ -22,8 +24,9 @@ export default class GnewmineContainer extends React.Component {
 }
 
 GnewmineContainer.propTypes = {
-  socket: PropTypes.object,
+  socket: PropTypes.object.isRequired,
   headers: PropTypes.object,
   userId: PropTypes.string,
   children: PropTypes.node,
+  host: PropTypes.string,
 };
