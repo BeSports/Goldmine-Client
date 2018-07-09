@@ -34,6 +34,10 @@ var _mobx = require('mobx');
 
 var _mobx2 = require('mobx/lib/mobx');
 
+var _reactVisibilitySensor = require('react-visibility-sensor');
+
+var _reactVisibilitySensor2 = _interopRequireDefault(_reactVisibilitySensor);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -92,13 +96,23 @@ var WithGnewmine = (_class = function (_React$Component) {
     _this.extractPublicationName = _this.extractPublicationName.bind(_this);
     _this.doGnewMine = _this.doGnewMine.bind(_this);
     _this.checkSubscriptions = _this.checkSubscriptions.bind(_this);
+    _this.getPossibleToLoadMoreOf = _this.getPossibleToLoadMoreOf.bind(_this);
+    _this.setVisible = _this.setVisible.bind(_this);
+    _this.incrementLimit = _this.incrementLimit.bind(_this);
+    _this.getLoaded = _this.getLoaded.bind(_this);
     _this.cancelSubscriptionsWithoutRecentCheck = _this.cancelSubscriptionsWithoutRecentCheck.bind(_this);
 
     _this.state = {
       loaded: false,
-      data: {}
+      data: {},
+      isVisible: false,
+      showSensor: false,
+      incrementing: false
     };
+
     _this.subs = [];
+    _this.loadMore = {};
+    _this.counters = {};
     return _this;
   }
 
@@ -136,6 +150,7 @@ var WithGnewmine = (_class = function (_React$Component) {
           _this3.recentChecks = [];
           _this3.nextProps = nextProps;
           var subscriptionsToSend = _this3.getSubscriptionsToSend(nextProps);
+          _this3.getPossibleToLoadMoreOf();
           if (_this3.subs !== subscriptionsToSend) {
             _this3.checkSubscriptions(subscriptionsToSend);
             _this3.cancelSubscriptionsWithoutRecentCheck();
@@ -175,8 +190,15 @@ var WithGnewmine = (_class = function (_React$Component) {
 
       _lodash2.default.forEach(this.subs, function (publicationNameWithParams) {
         if (!_lodash2.default.includes(_this5.recentChecks, publicationNameWithParams)) {
-          _GnewmineStore2.default.cancelSubscription(publicationNameWithParams);
-          delete _this5.subs[_lodash2.default.indexOf(_this5.subs, publicationNameWithParams)];
+          var removeSubscription = function removeSubscription() {
+            _GnewmineStore2.default.cancelSubscription(publicationNameWithParams);
+            delete _this5.subs[_lodash2.default.indexOf(_this5.subs, publicationNameWithParams)];
+          };
+          if (_this5.state.incrementing) {
+            setTimeout(removeSubscription, 2000);
+          } else {
+            removeSubscription();
+          }
         }
       });
       this.recentChecks = [];
@@ -189,7 +211,19 @@ var WithGnewmine = (_class = function (_React$Component) {
       var subscriptionsFunction = props.subscriptions;
       var subscriptions = subscriptionsFunction(props);
       var subscriptionsToSend = _lodash2.default.map(subscriptions, function (subscription) {
-        return subscription.publication + '?' + _this6.buildParams(_lodash2.default.merge(subscription.private === true ? { userId: _GnewmineStore2.default.userId } : {}, subscription.props));
+        var publicationName = subscription.publication + '?' + _this6.buildParams(_lodash2.default.merge(subscription.private === true ? { userId: _GnewmineStore2.default.userId } : {}, subscription.props, subscription.loadMore ? {
+          limit: _lodash2.default.get(_this6.counters, subscription.publication + '.counter', subscription.loadMore.initial)
+        } : {}));
+        if (subscription.loadMore) {
+          _lodash2.default.set(_this6.loadMore, subscription.publication, _lodash2.default.merge(subscription, { publicationNameWithParams: publicationName }));
+          if (!_lodash2.default.has(_this6.counters, subscription.publication)) {
+            _lodash2.default.set(_this6.counters, subscription.publication, {
+              publication: subscription.publication,
+              counter: subscription.loadMore.initial || 10
+            });
+          }
+        }
+        return publicationName;
       });
 
       return subscriptionsToSend;
@@ -255,38 +289,131 @@ var WithGnewmine = (_class = function (_React$Component) {
       this.setState({
         data: newData
       });
+      this.getPossibleToLoadMoreOf();
+    }
+  }, {
+    key: 'getPossibleToLoadMoreOf',
+    value: function getPossibleToLoadMoreOf() {
+      var _this7 = this;
+
+      _lodash2.default.filter(this.loadMore, function (subscriptionToLoadMore) {
+        var subscriptionData = _lodash2.default.find(_GnewmineStore2.default.subscriptions, ['publicationNameWithParams', subscriptionToLoadMore.publicationNameWithParams]);
+        var size = _lodash2.default.has(subscriptionData, 'data') ? _lodash2.default.size(_lodash2.default.find(_lodash2.default.values(subscriptionData.data))) : 0;
+        if (size >= _lodash2.default.find(_this7.counters, ['publication', subscriptionToLoadMore.publication]).counter) {
+          _lodash2.default.set(_this7.counters, subscriptionToLoadMore.publication + '.hasMore', true);
+        } else {
+          _lodash2.default.set(_this7.counters, subscriptionToLoadMore.publication + '.hasMore', false);
+        }
+      });
+      setTimeout(function () {
+        _this7.setState({
+          showSensor: true
+        });
+      }, 500);
+    }
+  }, {
+    key: 'setVisible',
+    value: function setVisible(state) {
+      var _this8 = this;
+
+      if (this.getLoaded() && state === true) {
+        this.setState({
+          isVisible: state,
+          showSensor: !state,
+          incrementing: true
+        }, function () {
+          if (state) {
+            _this8.incrementLimit();
+          }
+        });
+      }
+    }
+  }, {
+    key: 'incrementLimit',
+    value: function incrementLimit() {
+      var _this9 = this;
+
+      var newSubs = this.subs;
+      _lodash2.default.map(this.counters, function (counter) {
+        var pub = _lodash2.default.find(_this9.loadMore, ['publication', counter.publication]);
+        var newSub = pub.publication + '?' + _this9.buildParams(_lodash2.default.merge(pub.private === true ? { userId: _GnewmineStore2.default.userId } : {}, pub.props, {
+          limit: counter.counter + pub.loadMore.increment
+        }));
+        _lodash2.default.set(_this9.counters, pub.publication + '.counter', counter.counter + pub.loadMore.increment);
+        newSubs = _lodash2.default.without(newSubs, pub.publicationNameWithParams);
+        newSubs.push(newSub);
+      });
+      (0, _mobx.runInAction)(function () {
+        if (_this9.subs !== newSubs) {
+          _this9.checkSubscriptions(newSubs);
+          _this9.cancelSubscriptionsWithoutRecentCheck();
+        }
+        _this9.setState({
+          data: _this9.getDataObject
+        });
+      });
+      this.getPossibleToLoadMoreOf();
+    }
+  }, {
+    key: 'getLoaded',
+    value: function getLoaded() {
+      var _this10 = this;
+
+      return _lodash2.default.every(_lodash2.default.filter(_GnewmineStore2.default.subscriptions, function (publication) {
+        return _lodash2.default.includes(_this10.subs, publication.publicationNameWithParams);
+      }), function (o) {
+        return o.loaded === true;
+      });
     }
   }, {
     key: 'render',
     value: function render() {
-      var Component = this.props.Component;
+      var _props = this.props,
+          Component = _props.Component,
+          containmentId = _props.containmentId;
       var _state = this.state,
           data = _state.data,
-          loaded = _state.loaded;
+          showSensor = _state.showSensor,
+          incrementing = _state.incrementing;
 
-      return _react2.default.createElement(Component, _extends({ data: data, loaded: loaded }, this.props));
+      var loaded = this.getLoaded();
+      var hasScrollup = _lodash2.default.find(this.loadMore, ['loadMore.scrollUp', true]);
+      var hasMore = _lodash2.default.find(this.counters, ['hasMore', true]);
+
+      var sensor = _react2.default.createElement(_reactVisibilitySensor2.default, {
+        onChange: this.setVisible,
+        partialVisibility: true,
+        containment: document.getElementById(containmentId)
+      });
+
+      return _react2.default.createElement(
+        _react2.default.Fragment,
+        null,
+        hasScrollup && loaded && showSensor && hasMore && _react2.default.createElement(
+          _react2.default.Fragment,
+          null,
+          sensor,
+          'Loading...'
+        ),
+        _react2.default.createElement(Component, _extends({ data: data, loaded: loaded || incrementing }, this.props)),
+        !hasScrollup && loaded && showSensor && hasMore && _react2.default.createElement(
+          _react2.default.Fragment,
+          null,
+          'Loading...',
+          sensor
+        )
+      );
     }
   }, {
     key: 'getDataObject',
     get: function get() {
-      var _this7 = this;
+      var _this11 = this;
 
       return _lodash2.default.reduce(_lodash2.default.filter(_GnewmineStore2.default.subscriptions, function (publication) {
-        return _lodash2.default.includes(_this7.subs, publication.publicationNameWithParams);
+        return _lodash2.default.includes(_this11.subs, publication.publicationNameWithParams);
       }), function (data, dataPart) {
         return _lodash2.default.merge(data, (0, _mobx2.toJS)(dataPart.data));
       }, {});
-    }
-  }, {
-    key: 'getLoaded',
-    get: function get() {
-      var _this8 = this;
-
-      return _lodash2.default.every(_lodash2.default.filter(_GnewmineStore2.default.subscriptions, function (publication) {
-        return _lodash2.default.includes(_this8.subs, publication.publicationNameWithParams);
-      }), function (o) {
-        return o.loaded === true;
-      });
     }
   }]);
 

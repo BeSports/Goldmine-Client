@@ -6,6 +6,7 @@ import GnewmineStore from './stores/GnewmineStore';
 import React from 'react';
 import { runInAction, action } from 'mobx';
 import { toJS } from 'mobx/lib/mobx';
+import VisibilitySensor from 'react-visibility-sensor';
 
 const withGnewmine = (Component, subscriptions) => {
   return props => {
@@ -25,6 +26,10 @@ class WithGnewmine extends React.Component {
     this.extractPublicationName = this.extractPublicationName.bind(this);
     this.doGnewMine = this.doGnewMine.bind(this);
     this.checkSubscriptions = this.checkSubscriptions.bind(this);
+    this.getPossibleToLoadMoreOf = this.getPossibleToLoadMoreOf.bind(this);
+    this.setVisible = this.setVisible.bind(this);
+    this.incrementLimit = this.incrementLimit.bind(this);
+    this.getLoaded = this.getLoaded.bind(this);
     this.cancelSubscriptionsWithoutRecentCheck = this.cancelSubscriptionsWithoutRecentCheck.bind(
       this,
     );
@@ -32,8 +37,14 @@ class WithGnewmine extends React.Component {
     this.state = {
       loaded: false,
       data: {},
+      isVisible: false,
+      showSensor: false,
+      incrementing: false,
     };
+
     this.subs = [];
+    this.loadMore = {};
+    this.counters = {};
   }
 
   componentWillReceiveProps(nextProps) {
@@ -61,6 +72,7 @@ class WithGnewmine extends React.Component {
         this.recentChecks = [];
         this.nextProps = nextProps;
         const subscriptionsToSend = this.getSubscriptionsToSend(nextProps);
+        this.getPossibleToLoadMoreOf();
         if (this.subs !== subscriptionsToSend) {
           this.checkSubscriptions(subscriptionsToSend);
           this.cancelSubscriptionsWithoutRecentCheck();
@@ -91,8 +103,15 @@ class WithGnewmine extends React.Component {
   cancelSubscriptionsWithoutRecentCheck() {
     _.forEach(this.subs, publicationNameWithParams => {
       if (!_.includes(this.recentChecks, publicationNameWithParams)) {
-        GnewmineStore.cancelSubscription(publicationNameWithParams);
-        delete this.subs[_.indexOf(this.subs, publicationNameWithParams)];
+        const removeSubscription = () => {
+          GnewmineStore.cancelSubscription(publicationNameWithParams);
+          delete this.subs[_.indexOf(this.subs, publicationNameWithParams)];
+        };
+        if (this.state.incrementing) {
+          setTimeout(removeSubscription, 2000);
+        } else {
+          removeSubscription();
+        }
       }
     });
     this.recentChecks = [];
@@ -102,12 +121,35 @@ class WithGnewmine extends React.Component {
     const subscriptionsFunction = props.subscriptions;
     const subscriptions = subscriptionsFunction(props);
     const subscriptionsToSend = _.map(subscriptions, subscription => {
-      return `${subscription.publication}?${this.buildParams(
+      const publicationName = `${subscription.publication}?${this.buildParams(
         _.merge(
           subscription.private === true ? { userId: GnewmineStore.userId } : {},
           subscription.props,
+          subscription.loadMore
+            ? {
+                limit: _.get(
+                  this.counters,
+                  `${subscription.publication}.counter`,
+                  subscription.loadMore.initial,
+                ),
+              }
+            : {},
         ),
       )}`;
+      if (subscription.loadMore) {
+        _.set(
+          this.loadMore,
+          subscription.publication,
+          _.merge(subscription, { publicationNameWithParams: publicationName }),
+        );
+        if (!_.has(this.counters, subscription.publication)) {
+          _.set(this.counters, subscription.publication, {
+            publication: subscription.publication,
+            counter: subscription.loadMore.initial || 10,
+          });
+        }
+      }
+      return publicationName;
     });
 
     return subscriptionsToSend;
@@ -167,6 +209,73 @@ class WithGnewmine extends React.Component {
     this.setState({
       data: newData,
     });
+    this.getPossibleToLoadMoreOf();
+  }
+
+  getPossibleToLoadMoreOf() {
+    _.filter(this.loadMore, subscriptionToLoadMore => {
+      const subscriptionData = _.find(GnewmineStore.subscriptions, [
+        'publicationNameWithParams',
+        subscriptionToLoadMore.publicationNameWithParams,
+      ]);
+      const size = _.has(subscriptionData, 'data')
+        ? _.size(_.find(_.values(subscriptionData.data)))
+        : 0;
+      if (
+        size >= _.find(this.counters, ['publication', subscriptionToLoadMore.publication]).counter
+      ) {
+        _.set(this.counters, `${subscriptionToLoadMore.publication}.hasMore`, true);
+      } else {
+        _.set(this.counters, `${subscriptionToLoadMore.publication}.hasMore`, false);
+      }
+    });
+    setTimeout(() => {
+      this.setState({
+        showSensor: true,
+      });
+    }, 500);
+  }
+
+  setVisible(state) {
+    if (this.getLoaded() && state === true) {
+      this.setState(
+        {
+          isVisible: state,
+          showSensor: !state,
+          incrementing: true,
+        },
+        () => {
+          if (state) {
+            this.incrementLimit();
+          }
+        },
+      );
+    }
+  }
+
+  incrementLimit() {
+    let newSubs = this.subs;
+    _.map(this.counters, counter => {
+      const pub = _.find(this.loadMore, ['publication', counter.publication]);
+      const newSub = `${pub.publication}?${this.buildParams(
+        _.merge(pub.private === true ? { userId: GnewmineStore.userId } : {}, pub.props, {
+          limit: counter.counter + pub.loadMore.increment,
+        }),
+      )}`;
+      _.set(this.counters, `${pub.publication}.counter`, counter.counter + pub.loadMore.increment);
+      newSubs = _.without(newSubs, pub.publicationNameWithParams);
+      newSubs.push(newSub);
+    });
+    runInAction(() => {
+      if (this.subs !== newSubs) {
+        this.checkSubscriptions(newSubs);
+        this.cancelSubscriptionsWithoutRecentCheck();
+      }
+      this.setState({
+        data: this.getDataObject,
+      });
+    });
+    this.getPossibleToLoadMoreOf();
   }
 
   get getDataObject() {
@@ -181,7 +290,7 @@ class WithGnewmine extends React.Component {
     );
   }
 
-  get getLoaded() {
+  getLoaded() {
     return _.every(
       _.filter(GnewmineStore.subscriptions, publication => {
         return _.includes(this.subs, publication.publicationNameWithParams);
@@ -193,9 +302,43 @@ class WithGnewmine extends React.Component {
   }
 
   render() {
-    const { Component } = this.props;
-    const { data, loaded } = this.state;
-    return <Component data={data} loaded={loaded} {...this.props} />;
+    const { Component, containmentId } = this.props;
+    const { data, showSensor, incrementing } = this.state;
+    const loaded = this.getLoaded();
+    const hasScrollup = _.find(this.loadMore, ['loadMore.scrollUp', true]);
+    const hasMore = _.find(this.counters, ['hasMore', true]);
+
+    const sensor = (
+      <VisibilitySensor
+        onChange={this.setVisible}
+        partialVisibility
+        containment={document.getElementById(containmentId)}
+      />
+    );
+
+    return (
+      <React.Fragment>
+        {hasScrollup &&
+          loaded &&
+          showSensor &&
+          hasMore && (
+            <React.Fragment>
+              {sensor}
+              Loading...
+            </React.Fragment>
+          )}
+        <Component data={data} loaded={loaded || incrementing} {...this.props} />
+        {!hasScrollup &&
+          loaded &&
+          showSensor &&
+          hasMore && (
+            <React.Fragment>
+              Loading...
+              {sensor}
+            </React.Fragment>
+          )}
+      </React.Fragment>
+    );
   }
 }
 
