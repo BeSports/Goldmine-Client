@@ -45,7 +45,7 @@
     "mobx": "^3.1.16",
     "mobx-react": "^4.2.1",
     "react-visibility-sensor": "^3.11.0",
-    "socket.io-client": "^2.0.3",
+    "socket.io-client": "^2.0.3"
   },
   "peerDependencies": {
     "react": "^16.0.0",
