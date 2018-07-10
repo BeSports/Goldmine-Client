@@ -9,6 +9,7 @@ class GnewmineStore {
   @observable socket = null;
   @observable headers = null;
   @observable userId = null;
+  @observable host = null;
   @observable containers = [];
 
   constructor() {
@@ -67,7 +68,7 @@ class GnewmineStore {
     }
 
     const options = {
-      url: process.env.GNEWMINE_SERVER,
+      url: this.host || process.env.GNEWMINE_SERVER,
       headers,
       method: 'POST',
       data: {
@@ -119,6 +120,14 @@ class GnewmineStore {
   setUserId(userId) {
     if (userId !== this.userId) {
       this.userId = userId;
+      this.triggerAll(this.containers);
+    }
+  }
+
+  @action
+  setHost(host) {
+    if (host !== this.host) {
+      this.host = host;
       this.triggerAll(this.containers);
     }
   }

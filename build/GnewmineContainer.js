@@ -42,6 +42,7 @@ var GnewmineContainer = function (_React$Component) {
       _GnewmineStore2.default.setSocket(this.props.socket);
       _GnewmineStore2.default.setHeaders(this.props.headers);
       _GnewmineStore2.default.setUserId(this.props.userId);
+      _GnewmineStore2.default.setHost(this.props.host);
     }
   }, {
     key: 'componentWillReceiveProps',
@@ -49,11 +50,12 @@ var GnewmineContainer = function (_React$Component) {
       _GnewmineStore2.default.setSocket(nextProps.socket);
       _GnewmineStore2.default.setHeaders(nextProps.headers);
       _GnewmineStore2.default.setUserId(nextProps.userId);
+      _GnewmineStore2.default.setHost(nextProps.host);
     }
   }, {
     key: 'render',
     value: function render() {
-      return this.props.children;
+      return this.props.children || null;
     }
   }]);
 
@@ -64,8 +66,9 @@ exports.default = GnewmineContainer;
 
 
 GnewmineContainer.propTypes = {
-  socket: _propTypes2.default.object,
+  socket: _propTypes2.default.object.isRequired,
   headers: _propTypes2.default.object,
   userId: _propTypes2.default.string,
-  children: _propTypes2.default.node
+  children: _propTypes2.default.node,
+  host: _propTypes2.default.string
 };
