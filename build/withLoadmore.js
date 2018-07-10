@@ -40,7 +40,7 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-var withLoadmore = function withLoadmore(Component, subscriptions) {
+var withLoadmore = function withLoadmore(Component, subscriptions, options) {
   var WithLoadmore = function (_React$Component) {
     _inherits(WithLoadmore, _React$Component);
 
@@ -94,15 +94,14 @@ var withLoadmore = function withLoadmore(Component, subscriptions) {
     }, {
       key: 'render',
       value: function render() {
-        var _props = this.props,
-            containmentId = _props.containmentId,
-            scrollUp = _props.scrollUp,
-            Loader = _props.Loader;
+        var containmentId = this.props.containmentId;
         var _state = this.state,
             increment = _state.increment,
             allowSensor = _state.allowSensor,
             isMoreAvailable = _state.isMoreAvailable,
             incrementing = _state.incrementing;
+        var scrollUp = options.scrollUp,
+            loader = options.loader;
 
         var sensor = _react2.default.createElement(_reactVisibilitySensor2.default, {
           onChange: this.setVisible,
@@ -114,7 +113,7 @@ var withLoadmore = function withLoadmore(Component, subscriptions) {
           _react2.default.Fragment,
           null,
           scrollUp && allowSensor && isMoreAvailable && sensor,
-          scrollUp && isMoreAvailable && (Loader ? _react2.default.createElement(Loader, null) : 'Loading ...'),
+          scrollUp && isMoreAvailable && (loader || 'Loading ...'),
           _react2.default.createElement(_GnewMine2.default, _extends({
             gm: true,
             Component: Component,
@@ -123,7 +122,7 @@ var withLoadmore = function withLoadmore(Component, subscriptions) {
             trigger: increment,
             incrementing: incrementing
           }, this.props)),
-          !scrollUp && isMoreAvailable && (Loader ? _react2.default.createElement(Loader, null) : 'Loading ...'),
+          !scrollUp && isMoreAvailable && (loader || 'Loading ...'),
           !scrollUp && allowSensor && isMoreAvailable && sensor
         );
       }

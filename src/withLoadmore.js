@@ -5,7 +5,7 @@ import hoistNonReactStatics from 'hoist-non-react-statics';
 import GnewMine from './GnewMine';
 import PropTypes from 'prop-types';
 
-const withLoadmore = (Component, subscriptions) => {
+const withLoadmore = (Component, subscriptions, options) => {
   class WithLoadmore extends React.Component {
     constructor() {
       super();
@@ -51,8 +51,9 @@ const withLoadmore = (Component, subscriptions) => {
     }
 
     render() {
-      const { containmentId, scrollUp, Loader } = this.props;
+      const { containmentId } = this.props;
       const { increment, allowSensor, isMoreAvailable, incrementing } = this.state;
+      const { scrollUp, loader } = options;
       const sensor = (
         <VisibilitySensor
           onChange={this.setVisible}
@@ -64,7 +65,7 @@ const withLoadmore = (Component, subscriptions) => {
       return (
         <React.Fragment>
           {scrollUp && allowSensor && isMoreAvailable && sensor}
-          {scrollUp && isMoreAvailable && (Loader ? <Loader /> : 'Loading ...')}
+          {scrollUp && isMoreAvailable && (loader || 'Loading ...')}
           <GnewMine
             gm={true}
             Component={Component}
@@ -74,7 +75,7 @@ const withLoadmore = (Component, subscriptions) => {
             incrementing={incrementing}
             {...this.props}
           />
-          {!scrollUp && isMoreAvailable && (Loader ? <Loader /> : 'Loading ...')}
+          {!scrollUp && isMoreAvailable && (loader || 'Loading ...')}
           {!scrollUp && allowSensor && isMoreAvailable && sensor}
         </React.Fragment>
       );
