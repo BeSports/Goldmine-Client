@@ -297,7 +297,7 @@ var GnewMine = (_class = function (_React$Component) {
         if (size >= _lodash2.default.find(_this7.counters, ['publication', subscriptionToLoadMore.publication]).counter) {
           _lodash2.default.set(_this7.counters, subscriptionToLoadMore.publication + '.hasMore', true);
           if (!_this7.state.initialLoadCompleted) {
-            // set initialLoad as true, prevents rendering a loading indicator when updating limits
+            // set initialLoad as true, prevents rendering of the loading indicator when updating limits
             _this7.setState({
               initialLoadCompleted: true
             });

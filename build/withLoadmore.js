@@ -55,8 +55,7 @@ var withLoadmore = function withLoadmore(Component, subscriptions, options) {
       _this.state = {
         isMoreAvailable: false,
         allowSensor: false,
-        increment: false,
-        incrementing: false
+        increment: false
       };
       return _this;
     }
@@ -67,8 +66,7 @@ var withLoadmore = function withLoadmore(Component, subscriptions, options) {
         if (state) {
           this.setState({
             visible: state,
-            allowSensor: !state,
-            incrementing: true
+            allowSensor: !state
           }, this.triggerIncrement);
         }
       }
@@ -98,8 +96,7 @@ var withLoadmore = function withLoadmore(Component, subscriptions, options) {
         var _state = this.state,
             increment = _state.increment,
             allowSensor = _state.allowSensor,
-            isMoreAvailable = _state.isMoreAvailable,
-            incrementing = _state.incrementing;
+            isMoreAvailable = _state.isMoreAvailable;
         var scrollUp = options.scrollUp,
             loader = options.loader;
 
@@ -119,8 +116,7 @@ var withLoadmore = function withLoadmore(Component, subscriptions, options) {
             Component: Component,
             subscriptions: subscriptions,
             onLoaded: this.isThereMore,
-            trigger: increment,
-            incrementing: incrementing
+            trigger: increment
           }, this.props)),
           !scrollUp && isMoreAvailable && (loader || 'Loading ...'),
           !scrollUp && allowSensor && isMoreAvailable && sensor

@@ -16,7 +16,6 @@ const withLoadmore = (Component, subscriptions, options) => {
         isMoreAvailable: false,
         allowSensor: false,
         increment: false,
-        incrementing: false,
       };
     }
 
@@ -26,7 +25,6 @@ const withLoadmore = (Component, subscriptions, options) => {
           {
             visible: state,
             allowSensor: !state,
-            incrementing: true,
           },
           this.triggerIncrement,
         );
@@ -52,7 +50,7 @@ const withLoadmore = (Component, subscriptions, options) => {
 
     render() {
       const { containmentId } = this.props;
-      const { increment, allowSensor, isMoreAvailable, incrementing } = this.state;
+      const { increment, allowSensor, isMoreAvailable } = this.state;
       const { scrollUp, loader } = options;
       const sensor = (
         <VisibilitySensor
@@ -72,7 +70,6 @@ const withLoadmore = (Component, subscriptions, options) => {
             subscriptions={subscriptions}
             onLoaded={this.isThereMore}
             trigger={increment}
-            incrementing={incrementing}
             {...this.props}
           />
           {!scrollUp && isMoreAvailable && (loader || 'Loading ...')}
