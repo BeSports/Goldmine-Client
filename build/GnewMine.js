@@ -96,6 +96,7 @@ var GnewMine = (_class = function (_React$Component) {
     _this.cancelSubscriptionsWithoutRecentCheck = _this.cancelSubscriptionsWithoutRecentCheck.bind(_this);
 
     _this.state = {
+      initialLoadCompleted: false,
       loaded: false,
       data: {}
     };
@@ -188,7 +189,7 @@ var GnewMine = (_class = function (_React$Component) {
             _GnewmineStore2.default.cancelSubscription(publicationNameWithParams);
             delete _this5.subs[_lodash2.default.indexOf(_this5.subs, publicationNameWithParams)];
           };
-          if (_this5.props.incrementing) {
+          if (_this5.state.initialLoadCompleted) {
             setTimeout(removeSubscription, 2000);
           } else {
             removeSubscription();
@@ -295,6 +296,12 @@ var GnewMine = (_class = function (_React$Component) {
         var size = _lodash2.default.has(subscriptionData, 'data') ? _lodash2.default.size(_lodash2.default.find(_lodash2.default.values(subscriptionData.data))) : 0;
         if (size >= _lodash2.default.find(_this7.counters, ['publication', subscriptionToLoadMore.publication]).counter) {
           _lodash2.default.set(_this7.counters, subscriptionToLoadMore.publication + '.hasMore', true);
+          if (!_this7.state.initialLoadCompleted) {
+            // set initialLoad as true, prevents rendering a loading indicator when updating limits
+            _this7.setState({
+              initialLoadCompleted: true
+            });
+          }
         } else {
           _lodash2.default.set(_this7.counters, subscriptionToLoadMore.publication + '.hasMore', false);
         }
@@ -345,14 +352,13 @@ var GnewMine = (_class = function (_React$Component) {
   }, {
     key: 'render',
     value: function render() {
-      var _props = this.props,
-          Component = _props.Component,
-          incrementing = _props.incrementing;
+      var Component = this.props.Component;
+      var initialLoadCompleted = this.state.initialLoadCompleted;
       var data = this.state.data;
 
       var loaded = this.getLoaded();
 
-      return _react2.default.createElement(Component, _extends({ data: data, loaded: loaded || incrementing }, this.props));
+      return _react2.default.createElement(Component, _extends({ data: data, loaded: loaded || initialLoadCompleted }, this.props));
     }
   }, {
     key: 'getDataObject',
@@ -374,7 +380,6 @@ var GnewMine = (_class = function (_React$Component) {
 GnewMine.propTypes = {
   Component: _propTypes2.default.func,
   trigger: _propTypes2.default.bool,
-  incrementing: _propTypes2.default.bool,
   onLoaded: _propTypes2.default.func
 };
 

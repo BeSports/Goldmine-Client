@@ -25,6 +25,7 @@ class GnewMine extends React.Component {
     );
 
     this.state = {
+      initialLoadCompleted: false,
       loaded: false,
       data: {},
     };
@@ -98,7 +99,7 @@ class GnewMine extends React.Component {
           GnewmineStore.cancelSubscription(publicationNameWithParams);
           delete this.subs[_.indexOf(this.subs, publicationNameWithParams)];
         };
-        if (this.props.incrementing) {
+        if (this.state.initialLoadCompleted) {
           setTimeout(removeSubscription, 2000);
         } else {
           removeSubscription();
@@ -216,6 +217,12 @@ class GnewMine extends React.Component {
         size >= _.find(this.counters, ['publication', subscriptionToLoadMore.publication]).counter
       ) {
         _.set(this.counters, `${subscriptionToLoadMore.publication}.hasMore`, true);
+        if (!this.state.initialLoadCompleted) {
+          // set initialLoad as true, prevents rendering of the loading indicator when updating limits
+          this.setState({
+            initialLoadCompleted: true,
+          });
+        }
       } else {
         _.set(this.counters, `${subscriptionToLoadMore.publication}.hasMore`, false);
       }
@@ -276,18 +283,18 @@ class GnewMine extends React.Component {
   }
 
   render() {
-    const { Component, incrementing } = this.props;
+    const { Component } = this.props;
+    const { initialLoadCompleted } = this.state;
     const { data } = this.state;
     const loaded = this.getLoaded();
 
-    return <Component data={data} loaded={loaded || incrementing} {...this.props} />;
+    return <Component data={data} loaded={loaded || initialLoadCompleted} {...this.props} />;
   }
 }
 
 GnewMine.propTypes = {
   Component: PropTypes.func,
   trigger: PropTypes.bool,
-  incrementing: PropTypes.bool,
   onLoaded: PropTypes.func,
 };
 
