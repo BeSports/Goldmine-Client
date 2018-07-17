@@ -30,6 +30,8 @@ var _propTypes = require('prop-types');
 
 var _propTypes2 = _interopRequireDefault(_propTypes);
 
+require('react-hot-loader');
+
 var _react = require('react');
 
 var _react2 = _interopRequireDefault(_react);

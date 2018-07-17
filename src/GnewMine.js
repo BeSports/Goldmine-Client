@@ -3,6 +3,7 @@ import _ from 'lodash';
 import base64 from 'base-64';
 import GnewmineStore from './stores/GnewmineStore';
 import PropTypes from 'prop-types';
+import 'react-hot-loader';
 import React from 'react';
 import { runInAction, action } from 'mobx';
 import { toJS } from 'mobx/lib/mobx';
