@@ -109,8 +109,8 @@ var withLoadmore = function withLoadmore(Component, subscriptions, options) {
         return _react2.default.createElement(
           _react2.default.Fragment,
           null,
-          scrollUp && allowSensor && isMoreAvailable && sensor,
           scrollUp && isMoreAvailable && (loader || 'Loading ...'),
+          scrollUp && allowSensor && isMoreAvailable && sensor,
           _react2.default.createElement(_GnewMine2.default, _extends({
             gm: true,
             Component: Component,
@@ -118,8 +118,8 @@ var withLoadmore = function withLoadmore(Component, subscriptions, options) {
             onLoaded: this.isThereMore,
             trigger: increment
           }, this.props)),
-          !scrollUp && isMoreAvailable && (loader || 'Loading ...'),
-          !scrollUp && allowSensor && isMoreAvailable && sensor
+          !scrollUp && allowSensor && isMoreAvailable && sensor,
+          !scrollUp && isMoreAvailable && (loader || 'Loading ...')
         );
       }
     }]);

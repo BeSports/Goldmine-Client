@@ -62,8 +62,8 @@ const withLoadmore = (Component, subscriptions, options) => {
 
       return (
         <React.Fragment>
-          {scrollUp && allowSensor && isMoreAvailable && sensor}
           {scrollUp && isMoreAvailable && (loader || 'Loading ...')}
+          {scrollUp && allowSensor && isMoreAvailable && sensor}
           <GnewMine
             gm={true}
             Component={Component}
@@ -72,8 +72,8 @@ const withLoadmore = (Component, subscriptions, options) => {
             trigger={increment}
             {...this.props}
           />
-          {!scrollUp && isMoreAvailable && (loader || 'Loading ...')}
           {!scrollUp && allowSensor && isMoreAvailable && sensor}
+          {!scrollUp && isMoreAvailable && (loader || 'Loading ...')}
         </React.Fragment>
       );
     }
