@@ -213,7 +213,7 @@ var GnewmineStore = (_class = function () {
     value: function setDifference(publicationNameWithParams, differences) {
       var index = _lodash2.default.findIndex(this.subscriptions, { publicationNameWithParams: publicationNameWithParams });
 
-      if (index) {
+      if (index >= 0) {
         var newData = (0, _mobx.toJS)(this.subscriptions[index].data);
         _lodash2.default.each(differences, function (singleDiff) {
           _deepDiff2.default.applyChange(newData, {}, singleDiff);

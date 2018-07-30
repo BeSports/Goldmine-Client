@@ -1131,9 +1131,9 @@ debug@^3.1.0, debug@~3.1.0:
   dependencies:
     ms "2.0.0"
 
-"deep-diff@https://github.com/xanderberkein/diff.git":
+"deep-diff@https://github.com/xanderberkein/diff":
   version "1.0.1"
-  resolved "https://github.com/xanderberkein/diff.git#7540f6e3bb87af1f27b74eb9c5bb5d96727362cb"
+  resolved "https://github.com/xanderberkein/diff#7540f6e3bb87af1f27b74eb9c5bb5d96727362cb"
 
 deep-extend@~0.4.0:
   version "0.4.2"

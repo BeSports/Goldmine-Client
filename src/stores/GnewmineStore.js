@@ -136,7 +136,7 @@ class GnewmineStore {
   setDifference(publicationNameWithParams, differences) {
     const index = _.findIndex(this.subscriptions, { publicationNameWithParams });
 
-    if (index) {
+    if (index >= 0) {
       const newData = toJS(this.subscriptions[index].data);
       _.each(differences, singleDiff => {
         deepDifference.applyChange(newData, {}, singleDiff);
