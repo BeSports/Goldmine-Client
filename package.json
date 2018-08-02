@@ -39,7 +39,7 @@
   "dependencies": {
     "axios": "^0.18.0",
     "base-64": "^0.1.0",
-    "deep-diff": "https://github.com/xanderberkein/diff",
+    "deep-diff": "github:xanderberkein/diff#master",
     "hoist-non-react-statics": "^2.5.0",
     "lodash": "^4.17.4",
     "mobx": "^3.1.16",
