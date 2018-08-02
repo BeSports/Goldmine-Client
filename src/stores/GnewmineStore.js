@@ -61,7 +61,7 @@ class GnewmineStore {
   }
 
   @action
-  initiateSubscription(publicationNameWithParams) {
+  async initiateSubscription(publicationNameWithParams) {
     let headers = {};
     if (this.headers) {
       headers = _.merge(headers, this.headers);
@@ -77,30 +77,39 @@ class GnewmineStore {
       mode: 'cors',
     };
 
-    axios(options).then(response => {
+    let caching = true;
+
+    await axios(options).then(response => {
+      const { data } = response;
       if (process.env.NODE_ENV !== 'production') {
-        console.log('GNM init', publicationNameWithParams, response.data);
+        console.log('GNM init', publicationNameWithParams, data.objects);
       }
       // add the new subscription its data
       const index = _.findIndex(this.subscriptions, { publicationNameWithParams });
 
       if (index > -1) {
         this.subscriptions[index] = _.merge({}, this.subscriptions[index], {
-          data: response.data,
+          data: data.objects,
           loaded: true,
         });
       }
       this.updateContainers(publicationNameWithParams, this.containers);
+
+      if (data.noCaching) {
+        caching = false;
+      }
     });
 
-    const channel = this.socket.subscribe(this.toPusherName(publicationNameWithParams));
-    channel.bind('update', data => {
-      if (process.env.NODE_ENV !== 'production') {
-        console.log('GNM update', publicationNameWithParams, data.diff);
-      }
-      this.setDifference(publicationNameWithParams, data.diff);
-      this.updateContainers(publicationNameWithParams, this.containers);
-    });
+    if (caching) {
+      const channel = this.socket.subscribe(this.toPusherName(publicationNameWithParams));
+      channel.bind('update', data => {
+        if (process.env.NODE_ENV !== 'production') {
+          console.log('GNM update', publicationNameWithParams, data.diff);
+        }
+        this.setDifference(publicationNameWithParams, data.diff);
+        this.updateContainers(publicationNameWithParams, this.containers);
+      });
+    }
   }
 
   @action

@@ -28,6 +28,8 @@ var _index2 = _interopRequireDefault(_index);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
 function _initDefineProp(target, property, descriptor, context) {
   if (!descriptor) return;
   Object.defineProperty(target, property, {
@@ -136,49 +138,82 @@ var GnewmineStore = (_class = function () {
     }
   }, {
     key: 'initiateSubscription',
-    value: function initiateSubscription(publicationNameWithParams) {
-      var _this = this;
+    value: function () {
+      var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(publicationNameWithParams) {
+        var _this = this;
 
-      var headers = {};
-      if (this.headers) {
-        headers = _lodash2.default.merge(headers, this.headers);
+        var headers, options, caching, channel;
+        return regeneratorRuntime.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                headers = {};
+
+                if (this.headers) {
+                  headers = _lodash2.default.merge(headers, this.headers);
+                }
+
+                options = {
+                  url: this.host || process.env.GNEWMINE_SERVER,
+                  headers: headers,
+                  method: 'POST',
+                  data: {
+                    subscriptions: [publicationNameWithParams]
+                  },
+                  mode: 'cors'
+                };
+                caching = true;
+                _context.next = 6;
+                return (0, _index2.default)(options).then(function (response) {
+                  var data = response.data;
+
+                  if (process.env.NODE_ENV !== 'production') {
+                    console.log('GNM init', publicationNameWithParams, data.objects);
+                  }
+                  // add the new subscription its data
+                  var index = _lodash2.default.findIndex(_this.subscriptions, { publicationNameWithParams: publicationNameWithParams });
+
+                  if (index > -1) {
+                    _this.subscriptions[index] = _lodash2.default.merge({}, _this.subscriptions[index], {
+                      data: data.objects,
+                      loaded: true
+                    });
+                  }
+                  _this.updateContainers(publicationNameWithParams, _this.containers);
+
+                  if (data.noCaching) {
+                    caching = false;
+                  }
+                });
+
+              case 6:
+
+                if (caching) {
+                  channel = this.socket.subscribe(this.toPusherName(publicationNameWithParams));
+
+                  channel.bind('update', function (data) {
+                    if (process.env.NODE_ENV !== 'production') {
+                      console.log('GNM update', publicationNameWithParams, data.diff);
+                    }
+                    _this.setDifference(publicationNameWithParams, data.diff);
+                    _this.updateContainers(publicationNameWithParams, _this.containers);
+                  });
+                }
+
+              case 7:
+              case 'end':
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
+
+      function initiateSubscription(_x) {
+        return _ref.apply(this, arguments);
       }
 
-      var options = {
-        url: this.host || process.env.GNEWMINE_SERVER,
-        headers: headers,
-        method: 'POST',
-        data: {
-          subscriptions: [publicationNameWithParams]
-        },
-        mode: 'cors'
-      };
-
-      (0, _index2.default)(options).then(function (response) {
-        if (process.env.NODE_ENV !== 'production') {
-          console.log('GNM init', publicationNameWithParams, response.data);
-        }
-        // add the new subscription its data
-        var index = _lodash2.default.findIndex(_this.subscriptions, { publicationNameWithParams: publicationNameWithParams });
-
-        if (index > -1) {
-          _this.subscriptions[index] = _lodash2.default.merge({}, _this.subscriptions[index], {
-            data: response.data,
-            loaded: true
-          });
-        }
-        _this.updateContainers(publicationNameWithParams, _this.containers);
-      });
-
-      var channel = this.socket.subscribe(this.toPusherName(publicationNameWithParams));
-      channel.bind('update', function (data) {
-        if (process.env.NODE_ENV !== 'production') {
-          console.log('GNM update', publicationNameWithParams, data.diff);
-        }
-        _this.setDifference(publicationNameWithParams, data.diff);
-        _this.updateContainers(publicationNameWithParams, _this.containers);
-      });
-    }
+      return initiateSubscription;
+    }()
   }, {
     key: 'setSocket',
     value: function setSocket(socket) {
