@@ -108,10 +108,10 @@ class GnewmineStore {
       if (process.env.NODE_ENV !== 'production') {
         console.log('GNM (re)init', publicationNameWithParams, response.data);
       }
-
       return response.data;
     } catch (e) {
       console.log('Couldnt connect to api', e);
+      return null;
     }
   }
 
@@ -141,7 +141,6 @@ class GnewmineStore {
   @action
   setHeaders(headers) {
     if (!this.headers || headers['x-access-token'] !== this.headers['x-access-token']) {
-      console.log('Setting headers', headers);
       this.headers = headers;
       this.triggerAll(this.containers);
     }
@@ -150,7 +149,6 @@ class GnewmineStore {
   @action
   setUserId(userId) {
     if (userId !== this.userId) {
-      console.log('Setting userId', userId);
       this.userId = userId;
       this.triggerAll(this.containers);
     }
@@ -159,7 +157,6 @@ class GnewmineStore {
   @action
   setHost(host) {
     if (host !== this.host) {
-      console.log('Setting host', host);
       this.host = host;
       this.triggerAll(this.containers);
     }
@@ -168,28 +165,14 @@ class GnewmineStore {
   @action
   setDisconnected(disconnected) {
     if (disconnected !== this.disconnected && disconnected) {
-      console.log('SETDISCONNECTED', toJS(this.containers), this.containers.subs);
       const oldContainers = _.slice(this.containers);
       _.forEach(oldContainers, container => {
         _.forEach(container.subs, sub => {
-          console.log('SUB', sub);
           if (sub) {
             this.reinitSubscription(sub);
-            // this.cancelSubscription(sub);
-            // this.initiateSubscription(sub);
           }
         });
       });
-      // _.forEach(oldContainers, container => {
-      //   _.forEach(container.subs, sub => {
-      //     console.log('SUB', sub);
-      //     if (sub) {
-      //       // this.cancelSubscription(sub);
-      //       this.subscribe(sub);
-      //     }
-      //   });
-      // });
-      // this.triggerAll(this.containers);
     }
     this.disconnected = disconnected;
   }
@@ -222,7 +205,6 @@ class GnewmineStore {
   }
 
   triggerAll(containers) {
-    console.log('we getting triggered here', toJS(containers));
     _.forEach(toJS(containers), container => {
       container.doAutoRun();
     });

@@ -30,4 +30,5 @@ GnewmineContainer.propTypes = {
   userId: PropTypes.string,
   children: PropTypes.node,
   host: PropTypes.string,
+  env: PropTypes.string,
 };

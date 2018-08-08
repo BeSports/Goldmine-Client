@@ -226,7 +226,6 @@ var GnewmineStore = (_class = function () {
                 if (process.env.NODE_ENV !== 'production') {
                   console.log('GNM (re)init', publicationNameWithParams, response.data);
                 }
-
                 return _context2.abrupt('return', response.data);
 
               case 11:
@@ -234,8 +233,9 @@ var GnewmineStore = (_class = function () {
                 _context2.t0 = _context2['catch'](0);
 
                 console.log('Couldnt connect to api', _context2.t0);
+                return _context2.abrupt('return', null);
 
-              case 14:
+              case 15:
               case 'end':
                 return _context2.stop();
             }
@@ -302,7 +302,6 @@ var GnewmineStore = (_class = function () {
     key: 'setHeaders',
     value: function setHeaders(headers) {
       if (!this.headers || headers['x-access-token'] !== this.headers['x-access-token']) {
-        console.log('Setting headers', headers);
         this.headers = headers;
         this.triggerAll(this.containers);
       }
@@ -311,7 +310,6 @@ var GnewmineStore = (_class = function () {
     key: 'setUserId',
     value: function setUserId(userId) {
       if (userId !== this.userId) {
-        console.log('Setting userId', userId);
         this.userId = userId;
         this.triggerAll(this.containers);
       }
@@ -320,7 +318,6 @@ var GnewmineStore = (_class = function () {
     key: 'setHost',
     value: function setHost(host) {
       if (host !== this.host) {
-        console.log('Setting host', host);
         this.host = host;
         this.triggerAll(this.containers);
       }
@@ -331,28 +328,14 @@ var GnewmineStore = (_class = function () {
       var _this2 = this;
 
       if (disconnected !== this.disconnected && disconnected) {
-        console.log('SETDISCONNECTED', (0, _mobx.toJS)(this.containers), this.containers.subs);
         var oldContainers = _lodash2.default.slice(this.containers);
         _lodash2.default.forEach(oldContainers, function (container) {
           _lodash2.default.forEach(container.subs, function (sub) {
-            console.log('SUB', sub);
             if (sub) {
               _this2.reinitSubscription(sub);
-              // this.cancelSubscription(sub);
-              // this.initiateSubscription(sub);
             }
           });
         });
-        // _.forEach(oldContainers, container => {
-        //   _.forEach(container.subs, sub => {
-        //     console.log('SUB', sub);
-        //     if (sub) {
-        //       // this.cancelSubscription(sub);
-        //       this.subscribe(sub);
-        //     }
-        //   });
-        // });
-        // this.triggerAll(this.containers);
       }
       this.disconnected = disconnected;
     }
@@ -383,7 +366,6 @@ var GnewmineStore = (_class = function () {
   }, {
     key: 'triggerAll',
     value: function triggerAll(containers) {
-      console.log('we getting triggered here', (0, _mobx.toJS)(containers));
       _lodash2.default.forEach((0, _mobx.toJS)(containers), function (container) {
         container.doAutoRun();
       });

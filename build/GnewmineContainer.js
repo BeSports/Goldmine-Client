@@ -71,5 +71,6 @@ GnewmineContainer.propTypes = {
   headers: _propTypes2.default.object,
   userId: _propTypes2.default.string,
   children: _propTypes2.default.node,
-  host: _propTypes2.default.string
+  host: _propTypes2.default.string,
+  env: _propTypes2.default.string
 };
