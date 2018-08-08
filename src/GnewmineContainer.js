@@ -16,6 +16,7 @@ export default class GnewmineContainer extends React.Component {
     GnewmineStore.setHeaders(nextProps.headers);
     GnewmineStore.setUserId(nextProps.userId);
     GnewmineStore.setHost(nextProps.host);
+    GnewmineStore.setDisconnected(nextProps.forceUpdate);
   }
 
   render() {

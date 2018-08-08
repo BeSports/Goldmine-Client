@@ -51,6 +51,7 @@ var GnewmineContainer = function (_React$Component) {
       _GnewmineStore2.default.setHeaders(nextProps.headers);
       _GnewmineStore2.default.setUserId(nextProps.userId);
       _GnewmineStore2.default.setHost(nextProps.host);
+      _GnewmineStore2.default.setDisconnected(nextProps.forceUpdate);
     }
   }, {
     key: 'render',

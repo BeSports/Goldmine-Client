@@ -2,7 +2,7 @@ import { observable, action, toJS } from 'mobx';
 import _ from 'lodash';
 import deepDifference from 'deep-diff';
 import base64 from 'base-64';
-import axios from 'axios/index';
+import axios from 'axios';
 
 class GnewmineStore {
   @observable subscriptions = [];
@@ -10,6 +10,7 @@ class GnewmineStore {
   @observable headers = null;
   @observable userId = null;
   @observable host = null;
+  @observable disconnected = false;
   @observable containers = [];
 
   constructor() {
@@ -61,46 +62,75 @@ class GnewmineStore {
   }
 
   @action
-  initiateSubscription(publicationNameWithParams) {
-    let headers = {};
-    if (this.headers) {
-      headers = _.merge(headers, this.headers);
+  async initiateSubscription(publicationNameWithParams) {
+    const data = await this.getSubscriptionDataFromApi(publicationNameWithParams);
+
+    // add the new subscription its data
+    const index = _.findIndex(this.subscriptions, { publicationNameWithParams });
+
+    if (index > -1) {
+      this.subscriptions[index] = _.merge({}, this.subscriptions[index], {
+        data,
+        loaded: true,
+      });
     }
-
-    const options = {
-      url: this.host || process.env.GNEWMINE_SERVER,
-      headers,
-      method: 'POST',
-      data: {
-        subscriptions: [publicationNameWithParams],
-      },
-      mode: 'cors',
-    };
-
-    axios(options).then(response => {
-      if (process.env.NODE_ENV !== 'production') {
-        console.log('GNM init', publicationNameWithParams, response.data);
-      }
-      // add the new subscription its data
-      const index = _.findIndex(this.subscriptions, { publicationNameWithParams });
-
-      if (index > -1) {
-        this.subscriptions[index] = _.merge({}, this.subscriptions[index], {
-          data: response.data,
-          loaded: true,
-        });
-      }
-      this.updateContainers(publicationNameWithParams, this.containers);
-    });
+    this.updateContainers(publicationNameWithParams, this.containers);
 
     const channel = this.socket.subscribe(this.toPusherName(publicationNameWithParams));
-    channel.bind('update', data => {
+    channel.bind('update', newData => {
       if (process.env.NODE_ENV !== 'production') {
-        console.log('GNM update', publicationNameWithParams, data.diff);
+        console.log('GNM update', publicationNameWithParams, newData.diff);
       }
-      this.setDifference(publicationNameWithParams, data.diff);
+      this.setDifference(publicationNameWithParams, newData.diff);
       this.updateContainers(publicationNameWithParams, this.containers);
     });
+  }
+
+  @action
+  async getSubscriptionDataFromApi(publicationNameWithParams) {
+    try {
+      let headers = {};
+      if (this.headers) {
+        headers = _.merge(headers, this.headers);
+      }
+
+      const options = {
+        url: this.host || process.env.GNEWMINE_SERVER,
+        headers,
+        method: 'POST',
+        data: {
+          subscriptions: [publicationNameWithParams],
+        },
+        mode: 'cors',
+      };
+
+      const response = await axios(options);
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('GNM (re)init', publicationNameWithParams, response.data);
+      }
+
+      return response.data;
+    } catch (e) {
+      console.log('Couldnt connect to api', e);
+    }
+  }
+
+  @action
+  async reinitSubscription(publicationNameWithParams) {
+    const data = await this.getSubscriptionDataFromApi(publicationNameWithParams);
+
+    // add the new subscription its data
+    const index = _.findIndex(this.subscriptions, { publicationNameWithParams });
+
+    if (index > -1) {
+      this.subscriptions[index] = {
+        publicationNameWithParams: this.subscriptions[index].publicationNameWithParams,
+        times: this.subscriptions[index].times,
+        data,
+        loaded: true,
+      };
+    }
+    this.updateContainers(publicationNameWithParams, this.containers);
   }
 
   @action
@@ -110,7 +140,8 @@ class GnewmineStore {
 
   @action
   setHeaders(headers) {
-    if (headers !== this.headers) {
+    if (!this.headers || headers['x-access-token'] !== this.headers['x-access-token']) {
+      console.log('Setting headers', headers);
       this.headers = headers;
       this.triggerAll(this.containers);
     }
@@ -119,6 +150,7 @@ class GnewmineStore {
   @action
   setUserId(userId) {
     if (userId !== this.userId) {
+      console.log('Setting userId', userId);
       this.userId = userId;
       this.triggerAll(this.containers);
     }
@@ -127,9 +159,39 @@ class GnewmineStore {
   @action
   setHost(host) {
     if (host !== this.host) {
+      console.log('Setting host', host);
       this.host = host;
       this.triggerAll(this.containers);
     }
+  }
+
+  @action
+  setDisconnected(disconnected) {
+    if (disconnected !== this.disconnected && disconnected) {
+      console.log('SETDISCONNECTED', toJS(this.containers), this.containers.subs);
+      const oldContainers = _.slice(this.containers);
+      _.forEach(oldContainers, container => {
+        _.forEach(container.subs, sub => {
+          console.log('SUB', sub);
+          if (sub) {
+            this.reinitSubscription(sub);
+            // this.cancelSubscription(sub);
+            // this.initiateSubscription(sub);
+          }
+        });
+      });
+      // _.forEach(oldContainers, container => {
+      //   _.forEach(container.subs, sub => {
+      //     console.log('SUB', sub);
+      //     if (sub) {
+      //       // this.cancelSubscription(sub);
+      //       this.subscribe(sub);
+      //     }
+      //   });
+      // });
+      // this.triggerAll(this.containers);
+    }
+    this.disconnected = disconnected;
   }
 
   @action
@@ -160,6 +222,7 @@ class GnewmineStore {
   }
 
   triggerAll(containers) {
+    console.log('we getting triggered here', toJS(containers));
     _.forEach(toJS(containers), container => {
       container.doAutoRun();
     });

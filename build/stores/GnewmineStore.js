@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _desc, _value, _class, _descriptor, _descriptor2, _descriptor3, _descriptor4, _descriptor5, _descriptor6;
+var _desc, _value, _class, _descriptor, _descriptor2, _descriptor3, _descriptor4, _descriptor5, _descriptor6, _descriptor7;
 
 var _mobx = require('mobx');
 
@@ -22,11 +22,13 @@ var _base = require('base-64');
 
 var _base2 = _interopRequireDefault(_base);
 
-var _index = require('axios/index');
+var _axios = require('axios');
 
-var _index2 = _interopRequireDefault(_index);
+var _axios2 = _interopRequireDefault(_axios);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
 
 function _initDefineProp(target, property, descriptor, context) {
   if (!descriptor) return;
@@ -87,7 +89,9 @@ var GnewmineStore = (_class = function () {
 
     _initDefineProp(this, 'host', _descriptor5, this);
 
-    _initDefineProp(this, 'containers', _descriptor6, this);
+    _initDefineProp(this, 'disconnected', _descriptor6, this);
+
+    _initDefineProp(this, 'containers', _descriptor7, this);
 
     this.primaryKey = '';
   }
@@ -136,49 +140,159 @@ var GnewmineStore = (_class = function () {
     }
   }, {
     key: 'initiateSubscription',
-    value: function initiateSubscription(publicationNameWithParams) {
-      var _this = this;
+    value: function () {
+      var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(publicationNameWithParams) {
+        var _this = this;
 
-      var headers = {};
-      if (this.headers) {
-        headers = _lodash2.default.merge(headers, this.headers);
+        var data, index, channel;
+        return regeneratorRuntime.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                _context.next = 2;
+                return this.getSubscriptionDataFromApi(publicationNameWithParams);
+
+              case 2:
+                data = _context.sent;
+
+
+                // add the new subscription its data
+                index = _lodash2.default.findIndex(this.subscriptions, { publicationNameWithParams: publicationNameWithParams });
+
+
+                if (index > -1) {
+                  this.subscriptions[index] = _lodash2.default.merge({}, this.subscriptions[index], {
+                    data: data,
+                    loaded: true
+                  });
+                }
+                this.updateContainers(publicationNameWithParams, this.containers);
+
+                channel = this.socket.subscribe(this.toPusherName(publicationNameWithParams));
+
+                channel.bind('update', function (newData) {
+                  if (process.env.NODE_ENV !== 'production') {
+                    console.log('GNM update', publicationNameWithParams, newData.diff);
+                  }
+                  _this.setDifference(publicationNameWithParams, newData.diff);
+                  _this.updateContainers(publicationNameWithParams, _this.containers);
+                });
+
+              case 8:
+              case 'end':
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
+
+      function initiateSubscription(_x) {
+        return _ref.apply(this, arguments);
       }
 
-      var options = {
-        url: this.host || process.env.GNEWMINE_SERVER,
-        headers: headers,
-        method: 'POST',
-        data: {
-          subscriptions: [publicationNameWithParams]
-        },
-        mode: 'cors'
-      };
+      return initiateSubscription;
+    }()
+  }, {
+    key: 'getSubscriptionDataFromApi',
+    value: function () {
+      var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(publicationNameWithParams) {
+        var headers, options, response;
+        return regeneratorRuntime.wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+                _context2.prev = 0;
+                headers = {};
 
-      (0, _index2.default)(options).then(function (response) {
-        if (process.env.NODE_ENV !== 'production') {
-          console.log('GNM init', publicationNameWithParams, response.data);
-        }
-        // add the new subscription its data
-        var index = _lodash2.default.findIndex(_this.subscriptions, { publicationNameWithParams: publicationNameWithParams });
+                if (this.headers) {
+                  headers = _lodash2.default.merge(headers, this.headers);
+                }
 
-        if (index > -1) {
-          _this.subscriptions[index] = _lodash2.default.merge({}, _this.subscriptions[index], {
-            data: response.data,
-            loaded: true
-          });
-        }
-        _this.updateContainers(publicationNameWithParams, _this.containers);
-      });
+                options = {
+                  url: this.host || process.env.GNEWMINE_SERVER,
+                  headers: headers,
+                  method: 'POST',
+                  data: {
+                    subscriptions: [publicationNameWithParams]
+                  },
+                  mode: 'cors'
+                };
+                _context2.next = 6;
+                return (0, _axios2.default)(options);
 
-      var channel = this.socket.subscribe(this.toPusherName(publicationNameWithParams));
-      channel.bind('update', function (data) {
-        if (process.env.NODE_ENV !== 'production') {
-          console.log('GNM update', publicationNameWithParams, data.diff);
-        }
-        _this.setDifference(publicationNameWithParams, data.diff);
-        _this.updateContainers(publicationNameWithParams, _this.containers);
-      });
-    }
+              case 6:
+                response = _context2.sent;
+
+                if (process.env.NODE_ENV !== 'production') {
+                  console.log('GNM (re)init', publicationNameWithParams, response.data);
+                }
+
+                return _context2.abrupt('return', response.data);
+
+              case 11:
+                _context2.prev = 11;
+                _context2.t0 = _context2['catch'](0);
+
+                console.log('Couldnt connect to api', _context2.t0);
+
+              case 14:
+              case 'end':
+                return _context2.stop();
+            }
+          }
+        }, _callee2, this, [[0, 11]]);
+      }));
+
+      function getSubscriptionDataFromApi(_x2) {
+        return _ref2.apply(this, arguments);
+      }
+
+      return getSubscriptionDataFromApi;
+    }()
+  }, {
+    key: 'reinitSubscription',
+    value: function () {
+      var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(publicationNameWithParams) {
+        var data, index;
+        return regeneratorRuntime.wrap(function _callee3$(_context3) {
+          while (1) {
+            switch (_context3.prev = _context3.next) {
+              case 0:
+                _context3.next = 2;
+                return this.getSubscriptionDataFromApi(publicationNameWithParams);
+
+              case 2:
+                data = _context3.sent;
+
+
+                // add the new subscription its data
+                index = _lodash2.default.findIndex(this.subscriptions, { publicationNameWithParams: publicationNameWithParams });
+
+
+                if (index > -1) {
+                  this.subscriptions[index] = {
+                    publicationNameWithParams: this.subscriptions[index].publicationNameWithParams,
+                    times: this.subscriptions[index].times,
+                    data: data,
+                    loaded: true
+                  };
+                }
+                this.updateContainers(publicationNameWithParams, this.containers);
+
+              case 6:
+              case 'end':
+                return _context3.stop();
+            }
+          }
+        }, _callee3, this);
+      }));
+
+      function reinitSubscription(_x3) {
+        return _ref3.apply(this, arguments);
+      }
+
+      return reinitSubscription;
+    }()
   }, {
     key: 'setSocket',
     value: function setSocket(socket) {
@@ -187,7 +301,8 @@ var GnewmineStore = (_class = function () {
   }, {
     key: 'setHeaders',
     value: function setHeaders(headers) {
-      if (headers !== this.headers) {
+      if (!this.headers || headers['x-access-token'] !== this.headers['x-access-token']) {
+        console.log('Setting headers', headers);
         this.headers = headers;
         this.triggerAll(this.containers);
       }
@@ -196,6 +311,7 @@ var GnewmineStore = (_class = function () {
     key: 'setUserId',
     value: function setUserId(userId) {
       if (userId !== this.userId) {
+        console.log('Setting userId', userId);
         this.userId = userId;
         this.triggerAll(this.containers);
       }
@@ -204,9 +320,41 @@ var GnewmineStore = (_class = function () {
     key: 'setHost',
     value: function setHost(host) {
       if (host !== this.host) {
+        console.log('Setting host', host);
         this.host = host;
         this.triggerAll(this.containers);
       }
+    }
+  }, {
+    key: 'setDisconnected',
+    value: function setDisconnected(disconnected) {
+      var _this2 = this;
+
+      if (disconnected !== this.disconnected && disconnected) {
+        console.log('SETDISCONNECTED', (0, _mobx.toJS)(this.containers), this.containers.subs);
+        var oldContainers = _lodash2.default.slice(this.containers);
+        _lodash2.default.forEach(oldContainers, function (container) {
+          _lodash2.default.forEach(container.subs, function (sub) {
+            console.log('SUB', sub);
+            if (sub) {
+              _this2.reinitSubscription(sub);
+              // this.cancelSubscription(sub);
+              // this.initiateSubscription(sub);
+            }
+          });
+        });
+        // _.forEach(oldContainers, container => {
+        //   _.forEach(container.subs, sub => {
+        //     console.log('SUB', sub);
+        //     if (sub) {
+        //       // this.cancelSubscription(sub);
+        //       this.subscribe(sub);
+        //     }
+        //   });
+        // });
+        // this.triggerAll(this.containers);
+      }
+      this.disconnected = disconnected;
     }
   }, {
     key: 'setDifference',
@@ -235,6 +383,7 @@ var GnewmineStore = (_class = function () {
   }, {
     key: 'triggerAll',
     value: function triggerAll(containers) {
+      console.log('we getting triggered here', (0, _mobx.toJS)(containers));
       _lodash2.default.forEach((0, _mobx.toJS)(containers), function (container) {
         container.doAutoRun();
       });
@@ -298,10 +447,15 @@ var GnewmineStore = (_class = function () {
   initializer: function initializer() {
     return null;
   }
-}), _descriptor6 = _applyDecoratedDescriptor(_class.prototype, 'containers', [_mobx.observable], {
+}), _descriptor6 = _applyDecoratedDescriptor(_class.prototype, 'disconnected', [_mobx.observable], {
+  enumerable: true,
+  initializer: function initializer() {
+    return false;
+  }
+}), _descriptor7 = _applyDecoratedDescriptor(_class.prototype, 'containers', [_mobx.observable], {
   enumerable: true,
   initializer: function initializer() {
     return [];
   }
-}), _applyDecoratedDescriptor(_class.prototype, 'subscribe', [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, 'subscribe'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'cancelSubscription', [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, 'cancelSubscription'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'initiateSubscription', [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, 'initiateSubscription'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'setSocket', [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, 'setSocket'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'setHeaders', [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, 'setHeaders'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'setUserId', [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, 'setUserId'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'setHost', [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, 'setHost'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'setDifference', [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, 'setDifference'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'registerWithGnewmine', [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, 'registerWithGnewmine'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'cancelWithGnewmine', [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, 'cancelWithGnewmine'), _class.prototype)), _class);
+}), _applyDecoratedDescriptor(_class.prototype, 'subscribe', [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, 'subscribe'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'cancelSubscription', [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, 'cancelSubscription'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'initiateSubscription', [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, 'initiateSubscription'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'getSubscriptionDataFromApi', [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, 'getSubscriptionDataFromApi'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'reinitSubscription', [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, 'reinitSubscription'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'setSocket', [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, 'setSocket'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'setHeaders', [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, 'setHeaders'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'setUserId', [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, 'setUserId'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'setHost', [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, 'setHost'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'setDisconnected', [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, 'setDisconnected'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'setDifference', [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, 'setDifference'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'registerWithGnewmine', [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, 'registerWithGnewmine'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'cancelWithGnewmine', [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, 'cancelWithGnewmine'), _class.prototype)), _class);
 exports.default = new GnewmineStore();
