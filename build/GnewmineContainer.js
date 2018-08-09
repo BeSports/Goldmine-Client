@@ -43,6 +43,7 @@ var GnewmineContainer = function (_React$Component) {
       _GnewmineStore2.default.setHeaders(this.props.headers);
       _GnewmineStore2.default.setUserId(this.props.userId);
       _GnewmineStore2.default.setHost(this.props.host);
+      _GnewmineStore2.default.setOnServerDisconnect(this.props.onServerDisconnect);
     }
   }, {
     key: 'componentWillReceiveProps',
@@ -51,7 +52,8 @@ var GnewmineContainer = function (_React$Component) {
       _GnewmineStore2.default.setHeaders(nextProps.headers);
       _GnewmineStore2.default.setUserId(nextProps.userId);
       _GnewmineStore2.default.setHost(nextProps.host);
-      _GnewmineStore2.default.setDisconnected(nextProps.forceUpdate);
+      _GnewmineStore2.default.setForceUpdate(nextProps.forceUpdate);
+      _GnewmineStore2.default.setOnServerDisconnect(this.props.onServerDisconnect);
     }
   }, {
     key: 'render',
@@ -72,5 +74,6 @@ GnewmineContainer.propTypes = {
   userId: _propTypes2.default.string,
   children: _propTypes2.default.node,
   host: _propTypes2.default.string,
-  env: _propTypes2.default.string
+  forceUpdate: _propTypes2.default.bool,
+  onServerDisconnect: _propTypes2.default.func
 };

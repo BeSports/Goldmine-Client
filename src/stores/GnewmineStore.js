@@ -10,7 +10,8 @@ class GnewmineStore {
   @observable headers = null;
   @observable userId = null;
   @observable host = null;
-  @observable disconnected = false;
+  @observable forceUpdate = false;
+  @observable onServerDisconnect = null;
   @observable containers = [];
 
   constructor() {
@@ -111,6 +112,7 @@ class GnewmineStore {
       return response.data;
     } catch (e) {
       console.log('Couldnt connect to api', e);
+      this.onServerDisconnect("Can't connect to API server");
       return null;
     }
   }
@@ -163,8 +165,19 @@ class GnewmineStore {
   }
 
   @action
-  setDisconnected(disconnected) {
-    if (disconnected !== this.disconnected && disconnected) {
+  setOnServerDisconnect(onServerDisconnect) {
+    if (_.isFunction(onServerDisconnect)) {
+      if (onServerDisconnect !== this.onServerDisconnect) {
+        this.onServerDisconnect = onServerDisconnect;
+      }
+    } else {
+      this.onServerDisconnect = () => {};
+    }
+  }
+
+  @action
+  setForceUpdate(forceUpdate) {
+    if (forceUpdate && forceUpdate !== this.forceUpdate) {
       const oldContainers = _.slice(this.containers);
       _.forEach(oldContainers, container => {
         _.forEach(container.subs, sub => {
@@ -174,7 +187,7 @@ class GnewmineStore {
         });
       });
     }
-    this.disconnected = disconnected;
+    this.forceUpdate = forceUpdate;
   }
 
   @action

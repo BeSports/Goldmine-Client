@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _desc, _value, _class, _descriptor, _descriptor2, _descriptor3, _descriptor4, _descriptor5, _descriptor6, _descriptor7;
+var _desc, _value, _class, _descriptor, _descriptor2, _descriptor3, _descriptor4, _descriptor5, _descriptor6, _descriptor7, _descriptor8;
 
 var _mobx = require('mobx');
 
@@ -89,9 +89,11 @@ var GnewmineStore = (_class = function () {
 
     _initDefineProp(this, 'host', _descriptor5, this);
 
-    _initDefineProp(this, 'disconnected', _descriptor6, this);
+    _initDefineProp(this, 'forceUpdate', _descriptor6, this);
 
-    _initDefineProp(this, 'containers', _descriptor7, this);
+    _initDefineProp(this, 'onServerDisconnect', _descriptor7, this);
+
+    _initDefineProp(this, 'containers', _descriptor8, this);
 
     this.primaryKey = '';
   }
@@ -233,9 +235,10 @@ var GnewmineStore = (_class = function () {
                 _context2.t0 = _context2['catch'](0);
 
                 console.log('Couldnt connect to api', _context2.t0);
+                this.onServerDisconnect("Can't connect to API server");
                 return _context2.abrupt('return', null);
 
-              case 15:
+              case 16:
               case 'end':
                 return _context2.stop();
             }
@@ -323,11 +326,22 @@ var GnewmineStore = (_class = function () {
       }
     }
   }, {
-    key: 'setDisconnected',
-    value: function setDisconnected(disconnected) {
+    key: 'setOnServerDisconnect',
+    value: function setOnServerDisconnect(onServerDisconnect) {
+      if (_lodash2.default.isFunction(onServerDisconnect)) {
+        if (onServerDisconnect !== this.onServerDisconnect) {
+          this.onServerDisconnect = onServerDisconnect;
+        }
+      } else {
+        this.onServerDisconnect = function () {};
+      }
+    }
+  }, {
+    key: 'setForceUpdate',
+    value: function setForceUpdate(forceUpdate) {
       var _this2 = this;
 
-      if (disconnected !== this.disconnected && disconnected) {
+      if (forceUpdate && forceUpdate !== this.forceUpdate) {
         var oldContainers = _lodash2.default.slice(this.containers);
         _lodash2.default.forEach(oldContainers, function (container) {
           _lodash2.default.forEach(container.subs, function (sub) {
@@ -337,7 +351,7 @@ var GnewmineStore = (_class = function () {
           });
         });
       }
-      this.disconnected = disconnected;
+      this.forceUpdate = forceUpdate;
     }
   }, {
     key: 'setDifference',
@@ -429,15 +443,20 @@ var GnewmineStore = (_class = function () {
   initializer: function initializer() {
     return null;
   }
-}), _descriptor6 = _applyDecoratedDescriptor(_class.prototype, 'disconnected', [_mobx.observable], {
+}), _descriptor6 = _applyDecoratedDescriptor(_class.prototype, 'forceUpdate', [_mobx.observable], {
   enumerable: true,
   initializer: function initializer() {
     return false;
   }
-}), _descriptor7 = _applyDecoratedDescriptor(_class.prototype, 'containers', [_mobx.observable], {
+}), _descriptor7 = _applyDecoratedDescriptor(_class.prototype, 'onServerDisconnect', [_mobx.observable], {
+  enumerable: true,
+  initializer: function initializer() {
+    return null;
+  }
+}), _descriptor8 = _applyDecoratedDescriptor(_class.prototype, 'containers', [_mobx.observable], {
   enumerable: true,
   initializer: function initializer() {
     return [];
   }
-}), _applyDecoratedDescriptor(_class.prototype, 'subscribe', [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, 'subscribe'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'cancelSubscription', [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, 'cancelSubscription'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'initiateSubscription', [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, 'initiateSubscription'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'getSubscriptionDataFromApi', [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, 'getSubscriptionDataFromApi'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'reinitSubscription', [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, 'reinitSubscription'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'setSocket', [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, 'setSocket'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'setHeaders', [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, 'setHeaders'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'setUserId', [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, 'setUserId'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'setHost', [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, 'setHost'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'setDisconnected', [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, 'setDisconnected'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'setDifference', [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, 'setDifference'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'registerWithGnewmine', [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, 'registerWithGnewmine'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'cancelWithGnewmine', [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, 'cancelWithGnewmine'), _class.prototype)), _class);
+}), _applyDecoratedDescriptor(_class.prototype, 'subscribe', [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, 'subscribe'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'cancelSubscription', [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, 'cancelSubscription'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'initiateSubscription', [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, 'initiateSubscription'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'getSubscriptionDataFromApi', [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, 'getSubscriptionDataFromApi'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'reinitSubscription', [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, 'reinitSubscription'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'setSocket', [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, 'setSocket'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'setHeaders', [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, 'setHeaders'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'setUserId', [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, 'setUserId'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'setHost', [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, 'setHost'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'setOnServerDisconnect', [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, 'setOnServerDisconnect'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'setForceUpdate', [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, 'setForceUpdate'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'setDifference', [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, 'setDifference'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'registerWithGnewmine', [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, 'registerWithGnewmine'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'cancelWithGnewmine', [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, 'cancelWithGnewmine'), _class.prototype)), _class);
 exports.default = new GnewmineStore();

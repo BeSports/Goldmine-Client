@@ -9,6 +9,7 @@ export default class GnewmineContainer extends React.Component {
     GnewmineStore.setHeaders(this.props.headers);
     GnewmineStore.setUserId(this.props.userId);
     GnewmineStore.setHost(this.props.host);
+    GnewmineStore.setOnServerDisconnect(this.props.onServerDisconnect);
   }
 
   componentWillReceiveProps(nextProps) {
@@ -16,7 +17,8 @@ export default class GnewmineContainer extends React.Component {
     GnewmineStore.setHeaders(nextProps.headers);
     GnewmineStore.setUserId(nextProps.userId);
     GnewmineStore.setHost(nextProps.host);
-    GnewmineStore.setDisconnected(nextProps.forceUpdate);
+    GnewmineStore.setForceUpdate(nextProps.forceUpdate);
+    GnewmineStore.setOnServerDisconnect(this.props.onServerDisconnect);
   }
 
   render() {
@@ -30,5 +32,6 @@ GnewmineContainer.propTypes = {
   userId: PropTypes.string,
   children: PropTypes.node,
   host: PropTypes.string,
-  env: PropTypes.string,
+  forceUpdate: PropTypes.bool,
+  onServerDisconnect: PropTypes.func,
 };
