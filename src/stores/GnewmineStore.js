@@ -69,7 +69,7 @@ class GnewmineStore {
     // add the new subscription its data
     const index = _.findIndex(this.subscriptions, { publicationNameWithParams });
 
-    if (index > -1) {
+    if (data && index > -1) {
       this.subscriptions[index] = _.merge({}, this.subscriptions[index], {
         data: data.data,
         updateIds: [data.updateId],
@@ -129,7 +129,7 @@ class GnewmineStore {
     // add the new subscription its data
     const index = _.findIndex(this.subscriptions, { publicationNameWithParams });
 
-    if (index > -1) {
+    if (data && index > -1) {
       this.subscriptions[index] = {
         publicationNameWithParams: this.subscriptions[index].publicationNameWithParams,
         times: this.subscriptions[index].times,

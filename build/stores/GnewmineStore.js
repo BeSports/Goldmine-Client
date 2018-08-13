@@ -162,7 +162,7 @@ var GnewmineStore = (_class = function () {
                 index = _lodash2.default.findIndex(this.subscriptions, { publicationNameWithParams: publicationNameWithParams });
 
 
-                if (index > -1) {
+                if (data && index > -1) {
                   this.subscriptions[index] = _lodash2.default.merge({}, this.subscriptions[index], {
                     data: data.data,
                     updateIds: [data.updateId],
@@ -272,7 +272,7 @@ var GnewmineStore = (_class = function () {
                 index = _lodash2.default.findIndex(this.subscriptions, { publicationNameWithParams: publicationNameWithParams });
 
 
-                if (index > -1) {
+                if (data && index > -1) {
                   this.subscriptions[index] = {
                     publicationNameWithParams: this.subscriptions[index].publicationNameWithParams,
                     times: this.subscriptions[index].times,
