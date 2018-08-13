@@ -81,7 +81,7 @@ class GnewmineStore {
     const channel = this.socket.subscribe(this.toPusherName(publicationNameWithParams));
     channel.bind('update', newData => {
       if (process.env.NODE_ENV !== 'production') {
-        console.log('GNM update', publicationNameWithParams, newData.diff);
+        console.log('GNM update', publicationNameWithParams, newData);
       }
       this.setDifference(
         publicationNameWithParams,

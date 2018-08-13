@@ -175,7 +175,7 @@ var GnewmineStore = (_class = function () {
 
                 channel.bind('update', function (newData) {
                   if (process.env.NODE_ENV !== 'production') {
-                    console.log('GNM update', publicationNameWithParams, newData.diff);
+                    console.log('GNM update', publicationNameWithParams, newData);
                   }
                   _this.setDifference(publicationNameWithParams, newData.diff, newData.lastUpdateId, newData.updateId);
                 });
