@@ -71,7 +71,8 @@ class GnewmineStore {
 
     if (index > -1) {
       this.subscriptions[index] = _.merge({}, this.subscriptions[index], {
-        data,
+        data: data.data,
+        updateIds: [data.updateId],
         loaded: true,
       });
     }
@@ -82,8 +83,12 @@ class GnewmineStore {
       if (process.env.NODE_ENV !== 'production') {
         console.log('GNM update', publicationNameWithParams, newData.diff);
       }
-      this.setDifference(publicationNameWithParams, newData.diff);
-      this.updateContainers(publicationNameWithParams, this.containers);
+      this.setDifference(
+        publicationNameWithParams,
+        newData.diff,
+        newData.lastUpdateId,
+        newData.updateId,
+      );
     });
   }
 
@@ -128,7 +133,8 @@ class GnewmineStore {
       this.subscriptions[index] = {
         publicationNameWithParams: this.subscriptions[index].publicationNameWithParams,
         times: this.subscriptions[index].times,
-        data,
+        data: data.data,
+        updateIds: [data.updateId],
         loaded: true,
       };
     }
@@ -191,17 +197,32 @@ class GnewmineStore {
   }
 
   @action
-  setDifference(publicationNameWithParams, differences) {
+  setDifference(publicationNameWithParams, differences, lastUpdateId, updateId) {
     const index = _.findIndex(this.subscriptions, { publicationNameWithParams });
 
     if (index >= 0) {
       const newData = toJS(this.subscriptions[index].data);
-      _.each(differences, singleDiff => {
-        deepDifference.applyChange(newData, {}, singleDiff);
-      });
-      this.subscriptions[index] = _.merge({}, _.omit(this.subscriptions[index], 'data'), {
-        data: newData,
-      });
+
+      const { updateIds: lastUpdateIdsLocal } = this.subscriptions[index];
+
+      // If we didn't receive the last(=previous) update => reinitSubscription
+      if (!_.includes(lastUpdateIdsLocal, lastUpdateId)) {
+        this.reinitSubscription(publicationNameWithParams);
+      } else {
+        _.each(differences, singleDiff => {
+          deepDifference.applyChange(newData, {}, singleDiff);
+        });
+        lastUpdateIdsLocal.push(updateId);
+        this.subscriptions[index] = _.merge(
+          {},
+          _.omit(this.subscriptions[index], ['data', 'updateIds']),
+          {
+            data: newData,
+            updateIds: _.takeRight(lastUpdateIdsLocal, 10),
+          },
+        );
+        this.updateContainers(publicationNameWithParams, this.containers);
+      }
     }
   }
 

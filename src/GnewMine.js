@@ -144,7 +144,6 @@ class GnewMine extends React.Component {
       }
       return publicationName;
     });
-
     return subscriptionsToSend;
   }
 

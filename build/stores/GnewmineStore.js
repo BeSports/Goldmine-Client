@@ -164,7 +164,8 @@ var GnewmineStore = (_class = function () {
 
                 if (index > -1) {
                   this.subscriptions[index] = _lodash2.default.merge({}, this.subscriptions[index], {
-                    data: data,
+                    data: data.data,
+                    updateIds: [data.updateId],
                     loaded: true
                   });
                 }
@@ -176,8 +177,7 @@ var GnewmineStore = (_class = function () {
                   if (process.env.NODE_ENV !== 'production') {
                     console.log('GNM update', publicationNameWithParams, newData.diff);
                   }
-                  _this.setDifference(publicationNameWithParams, newData.diff);
-                  _this.updateContainers(publicationNameWithParams, _this.containers);
+                  _this.setDifference(publicationNameWithParams, newData.diff, newData.lastUpdateId, newData.updateId);
                 });
 
               case 8:
@@ -276,7 +276,8 @@ var GnewmineStore = (_class = function () {
                   this.subscriptions[index] = {
                     publicationNameWithParams: this.subscriptions[index].publicationNameWithParams,
                     times: this.subscriptions[index].times,
-                    data: data,
+                    data: data.data,
+                    updateIds: [data.updateId],
                     loaded: true
                   };
                 }
@@ -355,17 +356,29 @@ var GnewmineStore = (_class = function () {
     }
   }, {
     key: 'setDifference',
-    value: function setDifference(publicationNameWithParams, differences) {
+    value: function setDifference(publicationNameWithParams, differences, lastUpdateId, updateId) {
       var index = _lodash2.default.findIndex(this.subscriptions, { publicationNameWithParams: publicationNameWithParams });
 
       if (index >= 0) {
         var newData = (0, _mobx.toJS)(this.subscriptions[index].data);
-        _lodash2.default.each(differences, function (singleDiff) {
-          _deepDiff2.default.applyChange(newData, {}, singleDiff);
-        });
-        this.subscriptions[index] = _lodash2.default.merge({}, _lodash2.default.omit(this.subscriptions[index], 'data'), {
-          data: newData
-        });
+
+        var lastUpdateIdsLocal = this.subscriptions[index].updateIds;
+
+        // If we didn't receive the last(=previous) update => reinitSubscription
+
+        if (!_lodash2.default.includes(lastUpdateIdsLocal, lastUpdateId)) {
+          this.reinitSubscription(publicationNameWithParams);
+        } else {
+          _lodash2.default.each(differences, function (singleDiff) {
+            _deepDiff2.default.applyChange(newData, {}, singleDiff);
+          });
+          lastUpdateIdsLocal.push(updateId);
+          this.subscriptions[index] = _lodash2.default.merge({}, _lodash2.default.omit(this.subscriptions[index], ['data', 'updateIds']), {
+            data: newData,
+            updateIds: _lodash2.default.takeRight(lastUpdateIdsLocal, 10)
+          });
+          this.updateContainers(publicationNameWithParams, this.containers);
+        }
       }
     }
   }, {

@@ -222,7 +222,6 @@ var GnewMine = (_class = function (_React$Component) {
         }
         return publicationName;
       });
-
       return subscriptionsToSend;
     }
   }, {
