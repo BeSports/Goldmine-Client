@@ -77,8 +77,6 @@ class GnewmineStore {
       mode: 'cors',
     };
 
-    let caching = true;
-
     await axios(options).then(response => {
       const { data } = response;
       if (process.env.NODE_ENV !== 'production') {
@@ -95,21 +93,18 @@ class GnewmineStore {
       }
       this.updateContainers(publicationNameWithParams, this.containers);
 
-      if (data.noCaching) {
-        caching = false;
+      if (!data.noCaching) {
+        const channel = this.socket.subscribe(this.toPusherName(publicationNameWithParams));
+        channel.bind('update', data => {
+          if (process.env.NODE_ENV !== 'production') {
+            console.log('GNM update', publicationNameWithParams, data.diff);
+          }
+          this.setDifference(publicationNameWithParams, data.diff);
+          this.updateContainers(publicationNameWithParams, this.containers);
+        });
       }
     });
 
-    if (caching) {
-      const channel = this.socket.subscribe(this.toPusherName(publicationNameWithParams));
-      channel.bind('update', data => {
-        if (process.env.NODE_ENV !== 'production') {
-          console.log('GNM update', publicationNameWithParams, data.diff);
-        }
-        this.setDifference(publicationNameWithParams, data.diff);
-        this.updateContainers(publicationNameWithParams, this.containers);
-      });
-    }
   }
 
   @action
