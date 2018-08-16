@@ -44,6 +44,8 @@ var GnewmineContainer = function (_React$Component) {
       _GnewmineStore2.default.setUserId(this.props.userId);
       _GnewmineStore2.default.setHost(this.props.host);
       _GnewmineStore2.default.setOnServerDisconnect(this.props.onServerDisconnect);
+      _GnewmineStore2.default.setOnSocketDisconnect(this.props.onSocketDisconnect);
+      _GnewmineStore2.default.setOnSocketConnect(this.props.onSocketConnect);
     }
   }, {
     key: 'componentWillReceiveProps',
@@ -52,8 +54,9 @@ var GnewmineContainer = function (_React$Component) {
       _GnewmineStore2.default.setHeaders(nextProps.headers);
       _GnewmineStore2.default.setUserId(nextProps.userId);
       _GnewmineStore2.default.setHost(nextProps.host);
-      _GnewmineStore2.default.setForceUpdate(nextProps.forceUpdate);
       _GnewmineStore2.default.setOnServerDisconnect(this.props.onServerDisconnect);
+      _GnewmineStore2.default.setOnSocketDisconnect(this.props.onSocketDisconnect);
+      _GnewmineStore2.default.setOnSocketConnect(this.props.onSocketConnect);
     }
   }, {
     key: 'render',
@@ -74,6 +77,7 @@ GnewmineContainer.propTypes = {
   userId: _propTypes2.default.string,
   children: _propTypes2.default.node,
   host: _propTypes2.default.string,
-  forceUpdate: _propTypes2.default.bool,
-  onServerDisconnect: _propTypes2.default.func
+  onServerDisconnect: _propTypes2.default.func,
+  onSocketDisconnect: _propTypes2.default.func,
+  onSocketConnect: _propTypes2.default.func
 };

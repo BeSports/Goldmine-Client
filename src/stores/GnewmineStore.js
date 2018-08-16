@@ -10,9 +10,12 @@ class GnewmineStore {
   @observable headers = null;
   @observable userId = null;
   @observable host = null;
-  @observable forceUpdate = false;
-  @observable onServerDisconnect = null;
+  @observable dataInitialized = false;
   @observable containers = [];
+
+  onSocketDisconnect = () => {};
+  onSocketConnect = () => {};
+  onServerDisconnect = () => {};
 
   constructor() {
     this.primaryKey = '';
@@ -142,9 +145,35 @@ class GnewmineStore {
   }
 
   @action
+  handlePusherConnect() {
+    this.onSocketConnect();
+    // first time no need to reinitialize subscriptions (there shouldn't be any anyway)
+    if (!this.dataInitialized) {
+      this.dataInitialized = true;
+    } else {
+      console.log('Reinit because reconnect');
+      const oldContainers = _.slice(this.containers);
+      _.forEach(oldContainers, container => {
+        _.forEach(container.subs, sub => {
+          if (sub) {
+            this.reinitSubscription(sub);
+          }
+        });
+      });
+    }
+  }
+
+  @action
+  handlePusherDisconnect() {
+    this.onSocketDisconnect();
+  }
+
+  @action
   setSocket(socket) {
     if (!this.socket || (socket && socket.key !== this.socket.key)) {
       this.socket = socket;
+      this.socket.connection.bind('unavailable', () => this.handlePusherDisconnect());
+      this.socket.connection.bind('connected', () => this.handlePusherConnect());
     }
   }
 
@@ -174,28 +203,23 @@ class GnewmineStore {
 
   @action
   setOnServerDisconnect(onServerDisconnect) {
-    if (_.isFunction(onServerDisconnect)) {
-      if (onServerDisconnect !== this.onServerDisconnect) {
-        this.onServerDisconnect = onServerDisconnect;
-      }
-    } else {
-      this.onServerDisconnect = () => {};
+    if (_.isFunction(onServerDisconnect) && onServerDisconnect !== this.onServerDisconnect) {
+      this.onServerDisconnect = onServerDisconnect;
     }
   }
 
   @action
-  setForceUpdate(forceUpdate) {
-    if (forceUpdate && forceUpdate !== this.forceUpdate) {
-      const oldContainers = _.slice(this.containers);
-      _.forEach(oldContainers, container => {
-        _.forEach(container.subs, sub => {
-          if (sub) {
-            this.reinitSubscription(sub);
-          }
-        });
-      });
+  setOnSocketConnect(onSocketConnect) {
+    if (_.isFunction(onSocketConnect) && onSocketConnect !== this.onSocketConnect) {
+      this.onSocketConnect = onSocketConnect;
     }
-    this.forceUpdate = forceUpdate;
+  }
+
+  @action
+  setOnSocketDisconnect(onSocketDisconnect) {
+    if (_.isFunction(onSocketDisconnect) && onSocketDisconnect !== this.onSocketDisconnect) {
+      this.onSocketDisconnect = onSocketDisconnect;
+    }
   }
 
   @action
