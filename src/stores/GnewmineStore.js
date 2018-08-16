@@ -143,7 +143,9 @@ class GnewmineStore {
 
   @action
   setSocket(socket) {
-    this.socket = socket;
+    if (!this.socket || (socket && socket.key !== this.socket.key)) {
+      this.socket = socket;
+    }
   }
 
   @action

@@ -6,6 +6,7 @@ import GnewMine from './GnewMine';
 import withGnewmine from './withGnewmine';
 import withLoadmore from './withLoadmore';
 import GnewmineContainer from './GnewmineContainer';
+import gnewmineFunctions from './functions/gnewmineFunctions';
 
 export {
   MainContainer,
@@ -16,4 +17,5 @@ export {
   withGnewmine,
   withLoadmore,
   GnewmineContainer,
+  gnewmineFunctions,
 };

@@ -300,7 +300,9 @@ var GnewmineStore = (_class = function () {
   }, {
     key: 'setSocket',
     value: function setSocket(socket) {
-      this.socket = socket;
+      if (!this.socket || socket && socket.key !== this.socket.key) {
+        this.socket = socket;
+      }
     }
   }, {
     key: 'setHeaders',
