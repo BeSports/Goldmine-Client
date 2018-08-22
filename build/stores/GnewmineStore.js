@@ -175,16 +175,18 @@ var GnewmineStore = (_class = function () {
                 }
                 this.updateContainers(publicationNameWithParams, this.containers);
 
-                channel = this.socket.subscribe(this.toPusherName(publicationNameWithParams));
+                if (!data.noCaching) {
+                  channel = this.socket.subscribe(this.toPusherName(publicationNameWithParams));
 
-                channel.bind('update', function (newData) {
-                  if (process.env.NODE_ENV !== 'production') {
-                    console.log('GNM update', publicationNameWithParams, newData);
-                  }
-                  _this.setDifference(publicationNameWithParams, newData.diff, newData.lastUpdateId, newData.updateId);
-                });
+                  channel.bind('update', function (newData) {
+                    if (process.env.NODE_ENV !== 'production') {
+                      console.log('GNM update', publicationNameWithParams, newData);
+                    }
+                    _this.setDifference(publicationNameWithParams, newData.diff, newData.lastUpdateId, newData.updateId);
+                  });
+                }
 
-              case 8:
+              case 7:
               case 'end':
                 return _context.stop();
             }
